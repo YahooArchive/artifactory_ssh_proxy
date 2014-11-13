@@ -1,0 +1,19 @@
+# add repository names and users
+# permissions are separated by commas
+# users are separated by pipe
+# * represents all
+
+#user a,b can write, all users can read.
+repoX=WRITE:a|b,READ:*
+
+#all writes and reads allowed.
+repoY=WRITE:*,READ:*
+
+#users z can write, users z can read.
+repoZ=WRITE:z,READ:z
+
+#handle bad cases
+repoA
+repoB=
+repoC=WRITE,foo
+pepoK

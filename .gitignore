@@ -1,0 +1,20 @@
+*.class
+.settings
+.classpath
+.project
+target
+.gradle
+*.swp
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.tgz
+.clover
+test-output
+
+
+dependency-reduced-pom.xml
+
+
