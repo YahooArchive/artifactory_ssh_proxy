@@ -56,8 +56,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mina.version>2.0.7</mina.version>
         <checkstyle.skip>false</checkstyle.skip>
-        <min_jdk_version>1.6</min_jdk_version>
-        <max_jdk_version>1.8</max_jdk_version>
+        <min_jdk_version>1.7</min_jdk_version>
         <min_maven_version>2.1</min_maven_version>
         <target_jdk_version>${min_jdk_version}</target_jdk_version>
         <javadoc_options>-J-XX:-UseLargePages</javadoc_options>
@@ -258,7 +257,7 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>[${min_jdk_version},${max_jdk_version})</version>
+                                    <version>[${min_jdk_version},)</version>
                                 </requireJavaVersion>
                                 <requireMavenVersion>
                                     <version>[${min_maven_version},)</version>
