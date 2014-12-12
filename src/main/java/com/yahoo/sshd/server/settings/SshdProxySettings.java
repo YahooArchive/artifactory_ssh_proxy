@@ -54,6 +54,7 @@ public class SshdProxySettings implements SshdSettingsInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(SshdProxySettings.class);
 
     protected final int port;
+    protected final int httpPort;
     protected final String hostKeyPath;
     protected final List<DelegatingCommandFactory> cfInstances;
 
@@ -66,18 +67,22 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
     SshdProxySettings(final int port, final String hostKeyPath, final List<DelegatingCommandFactory> cfInstances,
                     final String artifactoryUrl, final String artifactoryUsername, final String artifactoryPassword,
-                    final RunnableComponent[] externalComponents, final String artifactoryAuthorizationFilePath)
-                    throws SshdConfigurationException {
+                    final RunnableComponent[] externalComponents, final String artifactoryAuthorizationFilePath,
+                    final int httpPort) throws SshdConfigurationException {
         this(port, hostKeyPath, cfInstances, artifactoryUrl, artifactoryUsername, artifactoryPassword,
-                        externalComponents, artifactoryAuthorizationFilePath, null);
+                        externalComponents, artifactoryAuthorizationFilePath, null, httpPort);
     }
 
     SshdProxySettings(final int port, final String hostKeyPath, final List<DelegatingCommandFactory> cfInstances,
                     final String artifactoryUrl, final String artifactoryUsername, final String artifactoryPassword,
                     final RunnableComponent[] externalComponents, final String artifactoryAuthorizationFilePath,
-                    final String sshRequestLogPath) throws SshdConfigurationException {
+                    final String sshRequestLogPath, final int httpPort) throws SshdConfigurationException {
 
         if (port <= 0 || port >= 65536) {
+            throw new SshdConfigurationException("Port " + port + " is invalid");
+        }
+
+        if (httpPort <= 0 || httpPort >= 65536) {
             throw new SshdConfigurationException("Port " + port + " is invalid");
         }
 
@@ -88,6 +93,7 @@ public class SshdProxySettings implements SshdSettingsInterface {
         }
 
         this.port = port;
+        this.httpPort = httpPort;
         this.hostKeyPath = hostKeyPath.trim();
         this.cfInstances = Collections.unmodifiableList(cfInstances);
 
@@ -215,8 +221,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
     private MultiUserPKAuthenticator getFileBasedAuth(final CountDownLatch countdownLatch) throws IOException {
         final File keyHome = new File(System.getProperty("home", "/home/"));
 
-        return new FileBasedPKAuthenticator(countdownLatch, keyHome, Arrays.asList(new Path[] {new File("/usr/local/sshproxy/")
-                        .toPath()}));
+        return new FileBasedPKAuthenticator(countdownLatch, keyHome, Arrays.asList(new Path[] {new File(
+                        "/usr/local/sshproxy/").toPath()}));
     }
 
     /**
@@ -301,5 +307,10 @@ public class SshdProxySettings implements SshdSettingsInterface {
     @Override
     public String getRequestLogPath() {
         return requestLogFilePath;
+    }
+
+    @Override
+    public int getHttpPort() {
+        return httpPort;
     }
 }

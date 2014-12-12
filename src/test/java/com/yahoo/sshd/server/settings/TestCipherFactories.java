@@ -32,8 +32,9 @@ public class TestCipherFactories {
         // arcfour's aren't working on 7u45
 
         SshdSettingsInterface settings =
-                        new SshdProxySettings(1, "hostkey", Collections.<DelegatingCommandFactory>emptyList(), "url",
-                                        "user", "pass", new RunnableComponent[] {}, "src/test/resources/auth/auth.txt");
+                        new SshdProxySettings(2222, "hostkey", Collections.<DelegatingCommandFactory>emptyList(),
+                                        "url", "user", "pass", new RunnableComponent[] {},
+                                        "src/test/resources/auth/auth.txt", 8080);
 
         List<NamedFactory<Cipher>> ciphers = settings.getCiphers();
 

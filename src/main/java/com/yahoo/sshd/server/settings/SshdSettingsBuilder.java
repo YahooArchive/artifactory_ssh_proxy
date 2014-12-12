@@ -32,18 +32,35 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.server.command.DefaultScpCommandFactory;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
+import com.yahoo.sshd.server.jetty.JettyRunnableComponent;
 import com.yahoo.sshd.utils.RunnableComponent;
 
 public class SshdSettingsBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(SshdSettingsBuilder.class);
 
     private static final String SYSTEM_NAME = "sshd_proxy";
-    private static final String DEFAULT_ROOT = "/opt/" + SYSTEM_NAME;
+
     /**
-     * getRoot() is prepended to this.
+     * getRoot() is prepends to this.
      */
-    private static final int DEFAULT_SSHD_PORT = 9000;
+    private static final String DEFAULT_ROOT = "/opt/" + SYSTEM_NAME;
+
+    /**
+     * Default port to listen on, was 9000, but 2222 is a more standard port to run another sshd on.
+     */
+    private static final int DEFAULT_SSHD_PORT = 2222;
+
+    /**
+     * Default format for log files
+     */
     private static final String LOG_FILE_DATE_FORMAT = "yyyy_MM_dd";
+
+    /**
+     * Default port for jetty to listen on.
+     * 8080 was picked because most apis run on 4080
+     */
+    public static final int DEFAULT_JETTY_PORT = 8080;
+    public static final String DEFAULT_JETTY_WEBAPP_DIR = DEFAULT_ROOT + "/webapps";
 
     protected int port;
     protected String hostKeyPath;
@@ -119,7 +136,7 @@ public class SshdSettingsBuilder {
     }
 
     protected RunnableComponent[] getExternalComponents() {
-        return new RunnableComponent[] {};
+        return new RunnableComponent[] {new JettyRunnableComponent(getHttpPort(), getJettyWebappDir()),};
     }
 
     protected String getArtifactoryUrl() {
@@ -140,7 +157,6 @@ public class SshdSettingsBuilder {
         }
 
         return s;
-
     }
 
     protected String getArtifactoryPassword() {
@@ -151,6 +167,26 @@ public class SshdSettingsBuilder {
         }
 
         return s;
+    }
+
+    protected int getHttpPort() {
+        final int port = configuration.getInt("sshd.jetty.port", DEFAULT_JETTY_PORT);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("got jettyPort {}", Integer.valueOf(port));
+        }
+
+        return port;
+    }
+
+    protected String getJettyWebappDir() {
+        final String dir = configuration.getString("sshd.jetty.webapp.dir", DEFAULT_JETTY_WEBAPP_DIR);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("got jettyWebappDir {}", dir);
+        }
+
+        return dir;
     }
 
     protected String getHostKeyPath() {
@@ -179,7 +215,8 @@ public class SshdSettingsBuilder {
                 try {
                     classInstance = (Class<DelegatingCommandFactory>) Class.forName(cfClass);
                 } catch (ClassNotFoundException e) {
-                    // TODO This hack exists to allow for some testing on the command line, and is probably useless at this point.
+                    // TODO This hack exists to allow for some testing on the command line, and is probably useless at
+                    // this point.
                     String newClass = "com.yahoo.sshd.server.command." + cfClass.trim();
                     LOGGER.error("failed to load class " + cfClass + " trying  " + newClass, e);
                     classInstance = (Class<DelegatingCommandFactory>) Class.forName(newClass);
@@ -285,6 +322,6 @@ public class SshdSettingsBuilder {
 
     public SshdSettingsInterface build() throws SshdConfigurationException {
         return new SshdProxySettings(port, hostKeyPath, createCfInstances(), artifactoryUrl, artifactoryUsername,
-                        artifactoryPassword, externalComponents, artifactoryAuthorizationFilePath, requestLogPath);
+                        artifactoryPassword, externalComponents, artifactoryAuthorizationFilePath, requestLogPath, getHttpPort());
     }
 }

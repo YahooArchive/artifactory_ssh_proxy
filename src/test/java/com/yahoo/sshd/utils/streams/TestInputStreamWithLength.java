@@ -12,10 +12,6 @@
  */
 package com.yahoo.sshd.utils.streams;
 
-import static com.yahoo.sshd.utils.streams.StreamsUtils.readByte;
-import static com.yahoo.sshd.utils.streams.StreamsUtils.readByteArray;
-import static com.yahoo.sshd.utils.streams.StreamsUtils.readByteOffset;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
@@ -28,20 +24,14 @@ import com.yahoo.sshd.utils.streams.StreamsUtils.ReadType;
 public class TestInputStreamWithLength {
 
     @Test(dataProvider = "types", dataProviderClass = StreamsUtils.class)
-    public void test10BytesOf100(ReadType r, int readSize) throws IOException {
+    public void test10BytesOf100(ReadType readType, int readSize) throws IOException {
         final int totalLength = 20;
         byte[] input = new byte[100];
         byte[] expected = new byte[totalLength];
-        for (int i = 0; i < input.length; i++) {
-            byte v = (byte) (i - 10);
-            if (v < 0)
-                v = 0;
-            input[i] = v;
-            if (i < totalLength)
-                expected[i] = v;
-        }
-
         byte[] payload = new byte[totalLength];
+
+        // setup the arrays
+        StreamsUtils.setupInputAndExpected(input, expected, totalLength);
 
         try (InputStreamWithLength payloadInputStream =
                         new InputStreamWithLength(new ByteArrayInputStream(input), totalLength)) {
@@ -51,19 +41,8 @@ public class TestInputStreamWithLength {
             int ofs = 0;
             while (length > 0) {
                 int len = 0;
-                switch (r) {
-                    case SINGLEBYTE:
-                        len = readByte(readSize, payload, payloadInputStream, ofs);
-                        break;
 
-                    case BYTEOFFSET:
-                        len = readByteOffset(readSize, payload, payloadInputStream, ofs);
-                        break;
-
-                    case BYTEARRAY:
-                        len = readByteArray(readSize, payload, payloadInputStream, ofs);
-                        break;
-                }
+                len = StreamsUtils.readHelper(readType, readSize, payload, payloadInputStream, ofs);
 
                 length -= len;
                 ofs += len;
@@ -78,20 +57,14 @@ public class TestInputStreamWithLength {
     }
 
     @Test(dataProvider = "types", dataProviderClass = StreamsUtils.class)
-    public void test100BytesOf10(ReadType r, int readSize) throws IOException {
+    public void test100BytesOf10(ReadType readType, int readSize) throws IOException {
         final int totalLength = 10;
         byte[] input = new byte[10];
         byte[] expected = new byte[totalLength];
-        for (int i = 0; i < input.length; i++) {
-            byte v = (byte) (i - 10);
-            if (v < 0)
-                v = 0;
-            input[i] = v;
-            if (i < totalLength)
-                expected[i] = v;
-        }
-
         byte[] payload = new byte[10];
+
+        // setup the arrays
+        StreamsUtils.setupInputAndExpected(input, expected, totalLength);
 
         try (InputStreamWithLength payloadInputStream =
                         new InputStreamWithLength(new ByteArrayInputStream(input), totalLength)) {
@@ -100,19 +73,9 @@ public class TestInputStreamWithLength {
             int passes = 0;
             while (length > 0) {
                 int len = 0;
-                switch (r) {
-                    case SINGLEBYTE:
-                        len = readByte(readSize, payload, payloadInputStream, ofs);
-                        break;
 
-                    case BYTEOFFSET:
-                        len = readByteOffset(readSize, payload, payloadInputStream, ofs);
-                        break;
+                len = StreamsUtils.readHelper(readType, readSize, payload, payloadInputStream, ofs);
 
-                    case BYTEARRAY:
-                        len = readByteArray(readSize, payload, payloadInputStream, ofs);
-                        break;
-                }
                 if (len > 0) {
                     length -= len;
                     ofs += len;

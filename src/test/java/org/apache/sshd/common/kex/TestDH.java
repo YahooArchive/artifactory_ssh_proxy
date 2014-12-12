@@ -12,14 +12,17 @@ import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
 
 public class TestDH {
+    @SuppressWarnings("boxing")
     @DataProvider
-    public Object[][] keyPairGenerator() throws Exception{
+    public Object[][] keyPairGenerator() throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH");
         kpg.initialize(512);
-        return new Object[][] {{ 1, kpg }};
+        return new Object[][] {{1, kpg}};
     }
 
-    @Test(description = "https://issues.apache.org/jira/browse/SSHD-330; https://bugzilla.wikimedia.org/show_bug.cgi?id=53895#c28", invocationCount = 500, dataProvider = "keyPairGenerator")
+    @Test(
+                    description = "https://issues.apache.org/jira/browse/SSHD-330; https://bugzilla.wikimedia.org/show_bug.cgi?id=53895#c28",
+                    invocationCount = 500, dataProvider = "keyPairGenerator")
     public void testDH(int a, KeyPairGenerator kpg) throws Exception {
 
         KeyPair kp = kpg.generateKeyPair();
@@ -36,7 +39,7 @@ public class TestDH {
         dh.getE();
         byte[] actual = dh.getK();
 
-        if(actual[0] == 0){
+        if (actual[0] == 0) {
             Assert.fail("Found leading 0");
         }
     }

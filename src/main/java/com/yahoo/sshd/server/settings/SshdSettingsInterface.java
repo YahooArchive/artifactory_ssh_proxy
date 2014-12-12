@@ -27,6 +27,9 @@ import com.yahoo.sshd.utils.RunnableComponent;
 
 public interface SshdSettingsInterface {
 
+    /**
+     * @return port sshd is listening on
+     */
     int getPort();
 
     String getHostKeyPath();
@@ -37,10 +40,20 @@ public interface SshdSettingsInterface {
 
     MultiUserPKAuthenticator getPublickeyAuthenticator() throws IOException, InterruptedException;
 
+    /**
+     * Default shell just returns a message.
+     * 
+     * @return an implementation of the Factory that implements a shell
+     */
     Factory<Command> getShellFactory();
 
     ArtifactoryInformation getArtifactoryInfo();
 
+    /**
+     * Get number of NIO Workers. Defaults to # of cpus +1
+     * 
+     * @return number of NIO workers the sshd server should use.
+     */
     int getNioWorkers();
 
     List<NamedFactory<Cipher>> getCiphers();
@@ -50,4 +63,9 @@ public interface SshdSettingsInterface {
     String getArtifactoryAuthorizationFilePath();
 
     String getRequestLogPath();
+
+    /**
+     * @return port http is listening on.
+     */
+    int getHttpPort();
 }

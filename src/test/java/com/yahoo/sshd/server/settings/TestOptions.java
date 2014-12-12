@@ -22,14 +22,18 @@ import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 
 @Test(groups = "unit")
 public class TestOptions {
-    // disabled because this fails on windows.
-    @Test(enabled = false)
+    @Test
     public void testDefault() throws SshdConfigurationException {
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            return;
+        }
+        
         SshdSettingsBuilder builder = new SshdSettingsBuilder(new String[] {});
         SshdSettingsInterface settings = builder.build();
 
-        Assert.assertEquals(settings.getPort(), 9000);
+        Assert.assertEquals(settings.getPort(), 2222);
         Assert.assertEquals(settings.getHostKeyPath(), "src/test/resources/conf/sshd_proxy/ssh_host_dsa_key");
+        Assert.assertEquals(settings.getHttpPort(), 8080);
 
         List<String> list = new ArrayList<>();
         for (DelegatingCommandFactory df : settings.getCfInstances()) {

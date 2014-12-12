@@ -12,14 +12,13 @@
  */
 package com.yahoo.sshd.utils.streams;
 
-import static com.yahoo.sshd.utils.streams.StreamsUtils.readByte;
-import static com.yahoo.sshd.utils.streams.StreamsUtils.readByteArray;
-import static com.yahoo.sshd.utils.streams.StreamsUtils.readByteOffset;
-
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.yahoo.sshd.server.shell.SshProxyMessage;
@@ -30,21 +29,24 @@ public class TestMessageOutputStream {
 
     private static final byte[] bytes = SshProxyMessage.MESSAGE_STRING.getBytes(Charset.forName("UTF-8"));
 
-    @Test(dataProvider = "types", dataProviderClass = StreamsUtils.class)
-    public void testReads(ReadType r, int readSize) throws IOException {
-        // test reading with max size
-        runReadsTests(r, -1);
+    @SuppressWarnings("boxing")
+    @DataProvider
+    public Object[][] reads() {
+        Object[][] types = StreamsUtils.types();
+        List<Object[]> ret = new ArrayList<>();
+        // read max, small and medium
+        for (int i : new int[] {-1, 10, 100}) {
+            for (Object[] params : types) {
+                //
+                ret.add(new Object[] {params[0], i});
+            }
+        }
+
+        return ret.toArray(new Object[][] {});
     }
 
-    @Test(dataProvider = "types", dataProviderClass = StreamsUtils.class)
-    public void testSmallReads(ReadType r, int readSize) throws IOException {
-        // test reading 10 at a time.
-        runReadsTests(r, 10);
-    }
-
-    // it's not a test.
-    @Test(enabled = false)
-    public void runReadsTests(ReadType r, int readSize) throws IOException {
+    @Test(dataProvider = "reads")
+    public void runReadsTests(ReadType readType, int readSize) throws IOException {
         final int totalLength = bytes.length;
         byte[] payload = new byte[totalLength];
 
@@ -52,19 +54,7 @@ public class TestMessageOutputStream {
             int length = totalLength;
             int ofs = 0;
 
-            switch (r) {
-                case SINGLEBYTE:
-                    Assert.assertEquals(readByte(0, new byte[] {}, payloadInputStream, 0), 0);
-                    break;
-
-                case BYTEOFFSET:
-                    Assert.assertEquals(readByteOffset(0, new byte[] {}, payloadInputStream, 0), 0);
-                    break;
-
-                case BYTEARRAY:
-                    Assert.assertEquals(readByteArray(0, new byte[] {}, payloadInputStream, 0), 0);
-
-            }
+            Assert.assertEquals(StreamsUtils.readHelper(readType, 0, new byte[] {}, payloadInputStream, ofs), 0);
 
             while (length > 0) {
                 if (readSize < 0) {
@@ -72,19 +62,8 @@ public class TestMessageOutputStream {
                 }
 
                 int len = 0;
-                switch (r) {
-                    case SINGLEBYTE:
-                        len = readByte(readSize, payload, payloadInputStream, ofs);
-                        break;
 
-                    case BYTEOFFSET:
-                        len = readByteOffset(readSize, payload, payloadInputStream, ofs);
-                        break;
-
-                    case BYTEARRAY:
-                        len = readByteArray(readSize, payload, payloadInputStream, ofs);
-                        break;
-                }
+                len = StreamsUtils.readHelper(readType, readSize, payload, payloadInputStream, ofs);
 
                 length -= len;
                 ofs += len;

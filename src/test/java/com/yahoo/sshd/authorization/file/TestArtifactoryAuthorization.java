@@ -41,61 +41,51 @@ public class TestArtifactoryAuthorization {
         SshdSettingsInterface mockedSshdSettings = new SshdSettingsInterface() {
             @Override
             public int getPort() {
-                // TODO Auto-generated method stub
                 return 0;
             }
 
             @Override
             public String getHostKeyPath() {
-                // TODO Auto-generated method stub
                 return null;
             }
 
             @Override
             public DelegatingCommandFactory getCommandFactory() {
-                // TODO Auto-generated method stub
                 return null;
             }
 
             @Override
             public List<DelegatingCommandFactory> getCfInstances() {
-                // TODO Auto-generated method stub
                 return null;
             }
 
             @Override
             public MultiUserPKAuthenticator getPublickeyAuthenticator() throws IOException, InterruptedException {
-                // TODO Auto-generated method stub
                 return null;
             }
 
             @Override
             public Factory<Command> getShellFactory() {
-                // TODO Auto-generated method stub
                 return null;
             }
 
             @Override
             public ArtifactoryInformation getArtifactoryInfo() {
-                // TODO Auto-generated method stub
                 return null;
             }
 
             @Override
             public int getNioWorkers() {
-                // TODO Auto-generated method stub
                 return 0;
             }
 
             @Override
             public List<NamedFactory<Cipher>> getCiphers() {
-                // TODO Auto-generated method stub
                 return null;
             }
 
             @Override
             public RunnableComponent[] getExternalComponents() {
-                // TODO Auto-generated method stub
                 return null;
             }
 
@@ -109,10 +99,16 @@ public class TestArtifactoryAuthorization {
                 return null;
             }
 
+            @Override
+            public int getHttpPort() {
+                return 0;
+            }
+
         };
         artifactoryAuthorization = new FileBasedArtifactoryAuthorizer(mockedSshdSettings);
     }
 
+    @SuppressWarnings("boxing")
     @DataProvider(name = "authSample")
     public static Object[][] getAuthSample() {
         return new Object[][] {
