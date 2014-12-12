@@ -56,8 +56,8 @@ public class TestChainedFactories {
         }
 
         SshdSettingsInterface sshdSettings =
-                        new SshdProxySettings(9000, "hostkey", cfList, "url", "user", "pass",
-                                        new RunnableComponent[] {}, "src/test/resources/auth/auth.txt");
+                        new SshdProxySettings(2222, "hostkey", cfList, "url", "user", "pass",
+                                        new RunnableComponent[] {}, "src/test/resources/auth/auth.txt", 8080);
 
         DelegatingCommandFactory commandFactory = sshdSettings.getCommandFactory();
         Assert.assertNotNull(commandFactory);

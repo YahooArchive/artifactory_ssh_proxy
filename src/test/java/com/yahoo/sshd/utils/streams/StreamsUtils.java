@@ -18,9 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
-@Test(groups = "unit")
 public class StreamsUtils {
     public static enum ReadType {
         BYTEARRAY, BYTEOFFSET, SINGLEBYTE
@@ -78,4 +76,35 @@ public class StreamsUtils {
         return len;
     }
 
+    public static int readHelper(ReadType readType, int readSize, byte[] payload, InputStream inputStream, int ofs)
+                    throws IOException {
+        switch (readType) {
+            case SINGLEBYTE:
+                return readByte(readSize, payload, inputStream, ofs);
+
+            case BYTEOFFSET:
+                return readByteOffset(readSize, payload, inputStream, ofs);
+
+            case BYTEARRAY:
+                return readByteArray(readSize, payload, inputStream, ofs);
+
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    public static void setupInputAndExpected(byte[] input, byte[] expected, int totalLength) {
+        for (int i = 0; i < input.length; i++) {
+            byte value = (byte) (i - 10);
+
+            if (value < 0) {
+                value = 0;
+            }
+
+            input[i] = value;
+            if (i < totalLength) {
+                expected[i] = value;
+            }
+        }
+    }
 }

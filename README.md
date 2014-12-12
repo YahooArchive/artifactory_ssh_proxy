@@ -33,6 +33,9 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
 - An artifactory server for which you have created an account (username & password) for the proxy to use.
 - Anyone who wants to use the proxy will need to be capable of ssh'ing into the proxy server.
 
+- It's highly advisable to look at apache commons daemon to run this while dropping privileges.
+- For unix operating systems, jsvc: http://commons.apache.org/proper/commons-daemon/jsvc.html 
+- For windows, procrun: http://commons.apache.org/proper/commons-daemon/procrun.html
 
 ## Build & Run
 
@@ -77,7 +80,8 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
 
 9. The proxy writes log files out to `/opt/sshd_proxy/logs/sshd_proxy`.
     1. Create the log directory:  `$ sudo mkdir -p /opt/sshd_proxy/logs/sshd_proxy`
-    2. Then change the permissions: `$ sudo chmod 777 /opt/sshd_proxy/logs/sshd_proxy`
+    2. Then change the permissions: `$ sudo chmod 750 /opt/sshd_proxy/logs/sshd_proxy`  
+    3. Change the owner: `$ sudo chown <logs_user> /opt/sshd_proxy/logs/sshd_proxy`
 
 10. Now you should be all set!  Go ahead and run it.
 
@@ -87,4 +91,4 @@ To run the proxy locally, do the following:
 
 1.  Build the jar if you haven't already:  `mvn clean install`
 2.  Get your classpath:  `mvn dependency:build-classpath -Dmdep.outputFile=sshd_classpath`
-3.  Run the proxy:  ``java -cp target/sshd_proxy-0.1.7-SNAPSHOT.jar:`cat sshd_classpath` com.yahoo.sshd.server.Sshd``
+3.  Run the proxy:  ``java -cp target/sshd_proxy-0.2.0-SNAPSHOT.jar:`cat sshd_classpath` com.yahoo.sshd.server.Sshd``
