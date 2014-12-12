@@ -15,13 +15,14 @@ package com.yahoo.sshd.server.settings;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.sshd.common.Cipher;
 import org.apache.sshd.common.NamedFactory;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
-import com.yahoo.sshd.utils.RunnableComponent;
 
 @Test(groups = "unit")
 public class TestCipherFactories {
@@ -32,9 +33,10 @@ public class TestCipherFactories {
         // arcfour's aren't working on 7u45
 
         SshdSettingsInterface settings =
-                        new SshdProxySettings(2222, "hostkey", Collections.<DelegatingCommandFactory>emptyList(),
-                                        "url", "user", "pass", new RunnableComponent[] {},
-                                        "src/test/resources/auth/auth.txt", 8080);
+                        new SshdSettingsBuilder().setSshdPort(2222).setConfiguration(Mockito.mock(Configuration.class))
+                                        .setArtifactoryUsername("a").setArtifactoryPassword("password")
+                                        .setArtifactoryUrl("http://your:4080/artifactory")
+                                        .setCommandFactories(Collections.<DelegatingCommandFactory>emptyList()).build();
 
         List<NamedFactory<Cipher>> ciphers = settings.getCiphers();
 

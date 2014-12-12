@@ -37,6 +37,10 @@ public class FileBasedArtifactoryAuthorizer implements ArtifactoryAuthorizer {
 
             final File watchDirectory = new File(settings.getArtifactoryAuthorizationFilePath());
 
+            if (!watchDirectory.exists()) {
+                LOG.warn("Unable to find authorization file {}", watchDirectory);
+            }
+
             // Make sure we sleep until this is ready
             final CountDownLatch countdownLatch = new CountDownLatch(1);
             try (ArtifactoryAuthorizerFileScanner artifactoryAuthorizerFileScanner =
