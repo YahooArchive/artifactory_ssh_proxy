@@ -65,25 +65,34 @@ public class SshdProxySettings implements SshdSettingsInterface {
     protected final String artifactoryAuthorizationFilePath;
     protected final String requestLogFilePath;
 
-    SshdProxySettings(final int port, final String hostKeyPath, final List<DelegatingCommandFactory> cfInstances,
-                    final String artifactoryUrl, final String artifactoryUsername, final String artifactoryPassword,
-                    final RunnableComponent[] externalComponents, final String artifactoryAuthorizationFilePath,
-                    final int httpPort) throws SshdConfigurationException {
-        this(port, hostKeyPath, cfInstances, artifactoryUrl, artifactoryUsername, artifactoryPassword,
-                        externalComponents, artifactoryAuthorizationFilePath, null, httpPort);
-    }
+    public SshdProxySettings(SshdSettingsBuilder b) throws SshdConfigurationException {
 
-    SshdProxySettings(final int port, final String hostKeyPath, final List<DelegatingCommandFactory> cfInstances,
-                    final String artifactoryUrl, final String artifactoryUsername, final String artifactoryPassword,
-                    final RunnableComponent[] externalComponents, final String artifactoryAuthorizationFilePath,
-                    final String sshRequestLogPath, final int httpPort) throws SshdConfigurationException {
+        this.port = b.getSshdPort();
+        this.httpPort = b.getHttpPort();
+        this.hostKeyPath = b.getHostKeyPath();
+        this.cfInstances = Collections.unmodifiableList(b.getCommandFactories());
+
+        String artifactoryUrl = b.getArtifactoryUrl();
+        String artifactoryUsername = b.getArtifactoryUsername();
+        String artifactoryPassword = b.getArtifactoryPassword();
+
+        this.artifactoryInfo =
+                        createArtifactoryInformation(b.getArtifactoryUrl(), b.getArtifactoryUsername(),
+                                        b.getArtifactoryPassword());
+
+        RunnableComponent[] temp = b.getExternalComponents();
+        this.externalComponents = Arrays.copyOf(temp, temp.length);
+
+        this.artifactoryAuthorizationFilePath = b.getArtifactoryAuthorizationFilePath();
+        this.requestLogFilePath = b.getRequestLogPath();
 
         if (port <= 0 || port >= 65536) {
-            throw new SshdConfigurationException("Port " + port + " is invalid");
+            throw new SshdConfigurationException("SSHD Port " + port + " is invalid");
         }
 
-        if (httpPort <= 0 || httpPort >= 65536) {
-            throw new SshdConfigurationException("Port " + port + " is invalid");
+        // -1 means it's disabled
+        if (httpPort >= 65536) {
+            throw new SshdConfigurationException("HTTP Port " + httpPort + " is invalid");
         }
 
         if (null == artifactoryUrl || artifactoryUrl.isEmpty() || null == artifactoryUsername
@@ -91,20 +100,18 @@ public class SshdProxySettings implements SshdSettingsInterface {
             throw new SshdConfigurationException(
                             "invalid artifactory configuration, url, user and password must be specified");
         }
-
-        this.port = port;
-        this.httpPort = httpPort;
-        this.hostKeyPath = hostKeyPath.trim();
-        this.cfInstances = Collections.unmodifiableList(cfInstances);
-
-        this.artifactoryInfo = createArtifactoryInformation(artifactoryUrl, artifactoryUsername, artifactoryPassword);
-
-        this.externalComponents = Arrays.copyOf(externalComponents, externalComponents.length);
-
-        this.artifactoryAuthorizationFilePath = artifactoryAuthorizationFilePath;
-        this.requestLogFilePath = sshRequestLogPath;
     }
 
+    /**
+     * Override this to control how you access artifactory. For example if your artifactory instance doesn't use http
+     * basic auth, and instead uses SAML or another authorization mechanism, you'll want to override this function to
+     * return a different instances of {@link ArtifactoryInformation}
+     * 
+     * @param artifactoryUrl
+     * @param artifactoryUsername
+     * @param artifactoryPassword
+     * @return
+     */
     protected ArtifactoryInformation createArtifactoryInformation(final String artifactoryUrl,
                     final String artifactoryUsername, final String artifactoryPassword) {
         return new ArtifactoryInformation(artifactoryUrl, artifactoryUsername, artifactoryPassword);

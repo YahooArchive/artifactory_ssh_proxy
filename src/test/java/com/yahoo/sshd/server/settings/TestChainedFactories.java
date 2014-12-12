@@ -15,12 +15,13 @@ package com.yahoo.sshd.server.settings;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.sshd.server.Command;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
-import com.yahoo.sshd.utils.RunnableComponent;
 
 @Test(groups = "unit")
 public class TestChainedFactories {
@@ -56,8 +57,10 @@ public class TestChainedFactories {
         }
 
         SshdSettingsInterface sshdSettings =
-                        new SshdProxySettings(2222, "hostkey", cfList, "url", "user", "pass",
-                                        new RunnableComponent[] {}, "src/test/resources/auth/auth.txt", 8080);
+                        new SshdSettingsBuilder().setSshdPort(2222).setConfiguration(Mockito.mock(Configuration.class))
+                                        .setArtifactoryUsername("a").setArtifactoryPassword("password")
+                                        .setArtifactoryUrl("http://your:4080/artifactory").setCommandFactories(cfList)
+                                        .build();
 
         DelegatingCommandFactory commandFactory = sshdSettings.getCommandFactory();
         Assert.assertNotNull(commandFactory);

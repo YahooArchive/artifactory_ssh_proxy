@@ -35,9 +35,21 @@ import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.jetty.JettyRunnableComponent;
 import com.yahoo.sshd.utils.RunnableComponent;
 
+/**
+ * This class is used for configuration of an {@link SshdProxySettings} implementation. In 0.1.X, a number of methods
+ * were erroneously named getXXX, and then {@link SshdSettingsBuilder#build()} called a giant constructor. In 0.2.X,
+ * findXXX builds the setting, and getXXX returns the final settings so {@link SshdSettingsBuilder#build()} can call a
+ * constructor with an instance of this class.
+ * 
+ * @author areese
+ * 
+ */
 public class SshdSettingsBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(SshdSettingsBuilder.class);
 
+    /**
+     * The name of this system, used in building some strings.
+     */
     private static final String SYSTEM_NAME = "sshd_proxy";
 
     /**
@@ -56,120 +68,149 @@ public class SshdSettingsBuilder {
     private static final String LOG_FILE_DATE_FORMAT = "yyyy_MM_dd";
 
     /**
-     * Default port for jetty to listen on.
-     * 8080 was picked because most apis run on 4080
+     * Default port for jetty to listen on. 8080 was picked because most apis run on 4080
      */
     public static final int DEFAULT_JETTY_PORT = 8080;
     public static final String DEFAULT_JETTY_WEBAPP_DIR = DEFAULT_ROOT + "/webapps";
 
-    protected int port;
-    protected String hostKeyPath;
-    protected List<String> commandFactories = new ArrayList<>();
+    private int sshdPort;
+    private int httpPort;
+    private String webappsDir = "";
+    private String hostKeyPath;
+    private String rootPath;
+    private List<String> commandFactoryStrings = new ArrayList<>();
 
-    protected String artifactoryUrl;
-    protected String artifactoryUsername;
-    protected String artifactoryPassword;
-    protected Configuration configuration;
-    protected RunnableComponent[] externalComponents;
-    protected String artifactoryAuthorizationFilePath;
-    protected String requestLogPath;
+    private List<? extends DelegatingCommandFactory> commandFactories;
+
+    private String artifactoryUrl;
+    private String artifactoryUsername;
+    private String artifactoryPassword;
+    private Configuration configuration;
+    private RunnableComponent[] externalComponents;
+    private String artifactoryAuthorizationFilePath;
+    private String requestLogPath;
 
     static final List<String> DEFAULT_COMMAND_FACTORIES = new ArrayList<>(Arrays.asList(new String[] {//
                     DefaultScpCommandFactory.class.getCanonicalName(), //
                     }));
 
+    SshdSettingsBuilder() {
+
+    }
+
     public SshdSettingsBuilder(String[] args) throws SshdConfigurationException {
-        // create the parser
-        final CommandLineParser parser = new GnuParser();
         String overriddenPath = null;
 
-        try {
-            Options options = new Options();
-            options.addOption("f", "config", true, "Path to properties file");
+        if (null != args) {
+            // create the parser
+            final CommandLineParser parser = new GnuParser();
 
-            // parse the command line arguments
-            CommandLine line = parser.parse(options, args);
-            overriddenPath = line.getOptionValue('f');
-        } catch (ParseException e) {
-            throw new SshdConfigurationException(e);
+            try {
+                Options options = new Options();
+                options.addOption("f", "config", true, "Path to properties file");
+
+                // parse the command line arguments
+                CommandLine line = parser.parse(options, args);
+                overriddenPath = line.getOptionValue('f');
+            } catch (ParseException e) {
+                throw new SshdConfigurationException(e);
+            }
         }
 
         try {
-            configuration = getPropertiesConfiguration(overriddenPath);
+            configuration = findPropertiesConfiguration(overriddenPath);
         } catch (ConfigurationException e) {
             throw new SshdConfigurationException(e);
         }
 
-        hostKeyPath = getHostKeyPath();
-        port = getSshdPort();
-        artifactoryUrl = getArtifactoryUrl();
-        artifactoryUsername = getArtifactoryUsername();
-        artifactoryPassword = getArtifactoryPassword();
-        externalComponents = getExternalComponents();
-        artifactoryAuthorizationFilePath = getArtifactoryAuthorizationFilePath();
-        requestLogPath = getRequestLogPath();
+        commandFactoryStrings = findCommandFactoryStrings();
+        rootPath = findRoot();
+        hostKeyPath = findHostKeyPath();
+        sshdPort = findSshdPort();
+        artifactoryUrl = findArtifactoryUrl();
+        artifactoryUsername = findArtifactoryUsername();
+        artifactoryPassword = findArtifactoryPassword();
+        artifactoryAuthorizationFilePath = findArtifactoryAuthorizationFilePath();
+        requestLogPath = findRequestLogPath();
+        httpPort = findHttpPort();
+        webappsDir = findWebappDir();
+
+        // do this last, so it can rely on everything before/
+        externalComponents = createExternalComponents();
     }
 
-    protected String getRequestLogPath() {
+    /**
+     * Generate the path for where request/access logs should be written to.
+     * 
+     * @return a path to write access logs to.
+     */
+    protected String findRequestLogPath() {
         final String defaultRequestLogFilePath =
                         getRoot() + "/logs/" + getSystemName() + "/access." + LOG_FILE_DATE_FORMAT + ".log";
 
-        final String logFilePath = configuration.getString("sshd.requestLogFilePath", defaultRequestLogFilePath);
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("got request log file path {}", logFilePath);
-        }
-        return logFilePath;
+        return getStringFromConfig("sshd.requestLogFilePath", defaultRequestLogFilePath, "got request log file path");
     }
 
-    protected String getArtifactoryAuthorizationFilePath() {
+
+    /**
+     * Generate the path for where the authorization mapping file should be read from.
+     * 
+     * @return a path to write access logs to.
+     */
+    protected String findArtifactoryAuthorizationFilePath() {
         final String defaultArtifactoryAuthorizationFilePath = getRoot() + "conf/" + getSystemName() + "/auth/auth.txt";
 
-        final String s =
-                        configuration.getString("sshd.artifactoryAuthorizationFilePath",
-                                        defaultArtifactoryAuthorizationFilePath);
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("got artifactory authorization file path {}", s);
-        }
-        return s;
+        return getStringFromConfig("sshd.artifactoryAuthorizationFilePath", defaultArtifactoryAuthorizationFilePath,
+                        "got artifactory authorization file path");
     }
 
-    protected RunnableComponent[] getExternalComponents() {
-        return new RunnableComponent[] {new JettyRunnableComponent(getHttpPort(), getJettyWebappDir()),};
-    }
-
-    protected String getArtifactoryUrl() {
-        final String s = configuration.getString("sshd.artifactoryUrl");
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("got artifactoryUrl {}", s);
+    /**
+     * Return a new array of extra things that need to be started.
+     * 
+     * @return an array of {@link RunnableComponent} that also need to be started.
+     */
+    protected RunnableComponent[] createExternalComponents() {
+        if (-1 == httpPort || null == webappsDir) {
+            return new RunnableComponent[] {};
         }
 
-        return s;
+        return new RunnableComponent[] {new JettyRunnableComponent(httpPort, webappsDir),};
     }
 
-    protected String getArtifactoryUsername() {
-        final String s = configuration.getString("sshd.artifactoryUsername");
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("got artifactoryUrl {}", s);
-        }
-
-        return s;
+    /**
+     * Generate the URL to access artifactory at
+     * 
+     * @return the artifactory url to access.
+     */
+    protected String findArtifactoryUrl() {
+        return getStringFromConfig("sshd.artifactoryUrl", "got artifactoryUrl");
     }
 
-    protected String getArtifactoryPassword() {
-        final String s = configuration.getString("sshd.artifactoryPassword");
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("got artifactoryPassword {}", s);
-        }
-
-        return s;
+    /**
+     * Generate the username to access artifactory as
+     * 
+     * @return the username to access artifactory as
+     */
+    protected String findArtifactoryUsername() {
+        return getStringFromConfig("sshd.artifactoryUsername", "got artifactoryUrl");
     }
 
-    protected int getHttpPort() {
+    /**
+     * Generate the password to access artifactory with
+     * 
+     * @return the password to access artifactory with
+     */
+    protected String findArtifactoryPassword() {
+        return getStringFromConfig("sshd.artifactoryPassword", "got artifactoryPassword");
+    }
+
+    /**
+     * Generate the port to run jetty on.
+     * 
+     * @return the port to run jetty on, -1 if jetty is disabled
+     */
+    protected int findHttpPort() {
+        // TODO: return -1 when jetty is disabled.
         final int port = configuration.getInt("sshd.jetty.port", DEFAULT_JETTY_PORT);
 
         if (LOGGER.isDebugEnabled()) {
@@ -179,36 +220,41 @@ public class SshdSettingsBuilder {
         return port;
     }
 
-    protected String getJettyWebappDir() {
-        final String dir = configuration.getString("sshd.jetty.webapp.dir", DEFAULT_JETTY_WEBAPP_DIR);
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("got jettyWebappDir {}", dir);
-        }
-
-        return dir;
+    /**
+     * Generate the webapps dir for jetty
+     * 
+     * @returnthe webapps dir for jetty, null if jetty is disabled
+     */
+    protected String findWebappDir() {
+        return getStringFromConfig("sshd.jetty.webapp.dir", DEFAULT_JETTY_WEBAPP_DIR, "got jettyWebappDir");
     }
 
-    protected String getHostKeyPath() {
+    /**
+     * Locate the hostkey path from the configuration
+     * 
+     * @return the hostKeyPath that should be set in the build for consumption by the {@link SshdSettingsInterface}
+     *         implementation
+     */
+    protected String findHostKeyPath() {
         final String defaultHostKeyPath = getRoot() + "/conf/" + getSystemName() + "/ssh_host_dsa_key";
 
-        final String s = configuration.getString("sshd.hostKeyPath", defaultHostKeyPath);
+        return getStringFromConfig("sshd.hostKeyPath", defaultHostKeyPath, "got host key");
+    }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("got host key {}", s);
+    private List<String> findCommandFactoryStrings() {
+        if (null == commandFactoryStrings || commandFactoryStrings.isEmpty()) {
+            commandFactoryStrings = DEFAULT_COMMAND_FACTORIES;
         }
-        return s;
+
+        return commandFactoryStrings;
     }
 
     @SuppressWarnings("unchecked")
     List<DelegatingCommandFactory> createCfInstances() {
-        if (commandFactories.size() == 0) {
-            commandFactories = DEFAULT_COMMAND_FACTORIES;
-        }
+        List<DelegatingCommandFactory> cfInstances = new ArrayList<>(commandFactoryStrings.size());
 
-        List<DelegatingCommandFactory> cfInstances = new ArrayList<>(commandFactories.size());
-
-        for (String cfClass : commandFactories) {
+        for (String cfClass : commandFactoryStrings) {
             try {
                 Class<DelegatingCommandFactory> classInstance;
 
@@ -231,7 +277,12 @@ public class SshdSettingsBuilder {
         return cfInstances;
     }
 
-    String getRoot() {
+    /**
+     * Find the root path A root path is where things are installed under.
+     * 
+     * @return root path to use
+     */
+    String findRoot() {
         String root = System.getenv("ROOT");
 
         if (null == root) {
@@ -248,7 +299,7 @@ public class SshdSettingsBuilder {
         return root;
     }
 
-    protected Configuration getConfiguration(final String overriddenPath) {
+    protected Configuration createConfiguration(final String overriddenPath) {
         try {
 
             if (LOGGER.isDebugEnabled()) {
@@ -258,7 +309,7 @@ public class SshdSettingsBuilder {
             CompositeConfiguration compositeConfig = new CompositeConfiguration();
             // TODO: see how Systems and properties interact.
             compositeConfig.addConfiguration(new SystemConfiguration());
-            compositeConfig.addConfiguration(getPropertiesConfiguration(overriddenPath));
+            compositeConfig.addConfiguration(findPropertiesConfiguration(overriddenPath));
 
             return compositeConfig;
         } catch (ConfigurationException e) {
@@ -266,11 +317,11 @@ public class SshdSettingsBuilder {
         }
     }
 
-    protected Configuration getPropertiesConfiguration(final String overriddenPath) throws ConfigurationException {
+    protected Configuration findPropertiesConfiguration(final String overriddenPath) throws ConfigurationException {
 
         String propertiesPath;
         if (null == overriddenPath || overriddenPath.isEmpty()) {
-            propertiesPath = getPropertiesPath();
+            propertiesPath = findPropertiesPath();
         } else {
             // -f on command line overrides -D
             propertiesPath = overriddenPath;
@@ -292,7 +343,7 @@ public class SshdSettingsBuilder {
         return new PropertiesConfiguration(propertiesPath);
     }
 
-    protected String getPropertiesPath() {
+    protected String findPropertiesPath() {
         String propertiesPath;
 
         propertiesPath = getRoot() + "/conf/" + getSystemName() + "/sshd_proxy.properties";
@@ -306,7 +357,12 @@ public class SshdSettingsBuilder {
         return propertiesPath;
     }
 
-    protected int getSshdPort() {
+    /**
+     * Find the sshd port from the configuration
+     * 
+     * @return sshd port to be set in the builder.
+     */
+    protected int findSshdPort() {
         final int port = configuration.getInt("sshd.port", DEFAULT_SSHD_PORT);
 
         if (LOGGER.isDebugEnabled()) {
@@ -320,8 +376,214 @@ public class SshdSettingsBuilder {
         return SYSTEM_NAME;
     }
 
-    public SshdSettingsInterface build() throws SshdConfigurationException {
-        return new SshdProxySettings(port, hostKeyPath, createCfInstances(), artifactoryUrl, artifactoryUsername,
-                        artifactoryPassword, externalComponents, artifactoryAuthorizationFilePath, requestLogPath, getHttpPort());
+    public String getRoot() {
+        if (null == rootPath) {
+            rootPath = findRoot();
+        }
+
+        return rootPath;
     }
+
+    protected int getSshdPort() {
+        if (0 == sshdPort) {
+            sshdPort = findSshdPort();
+        }
+        return sshdPort;
+    }
+
+    protected SshdSettingsBuilder setSshdPort(int sshdPort) {
+        this.sshdPort = sshdPort;
+        return this;
+    }
+
+    protected int getHttpPort() {
+        if (0 == httpPort) {
+            httpPort = findHttpPort();
+        }
+        return httpPort;
+    }
+
+    protected SshdSettingsBuilder setHttpPort(int httpPort) {
+        this.httpPort = httpPort;
+        return this;
+    }
+
+    protected String getWebappsDir() {
+        if ("" == webappsDir) {
+            webappsDir = findWebappDir();
+        }
+        return webappsDir;
+    }
+
+    protected SshdSettingsBuilder setWebappsDir(String webappsDir) {
+        this.webappsDir = webappsDir;
+        return this;
+    }
+
+    protected String getHostKeyPath() {
+        if (null == hostKeyPath) {
+            hostKeyPath = findHostKeyPath();
+        }
+        return hostKeyPath;
+    }
+
+    protected SshdSettingsBuilder setHostKeyPath(String hostKeyPath) {
+        this.hostKeyPath = hostKeyPath;
+        return this;
+    }
+
+    protected SshdSettingsBuilder setRootPath(String rootPath) {
+        this.rootPath = rootPath;
+        return this;
+    }
+
+    protected List<String> getCommandFactoryStrings() {
+        return commandFactoryStrings;
+    }
+
+    protected SshdSettingsBuilder setCommandFactoryStrings(List<String> commandFactoryStrings) {
+        this.commandFactoryStrings = commandFactoryStrings;
+        return this;
+    }
+
+
+    protected List<? extends DelegatingCommandFactory> getCommandFactories() {
+        if (null == commandFactories || commandFactories.isEmpty()) {
+            commandFactories = createCfInstances();
+        }
+        return commandFactories;
+    }
+
+    protected SshdSettingsBuilder setCommandFactories(List<? extends DelegatingCommandFactory> commandFactories) {
+        this.commandFactories = commandFactories;
+        return this;
+    }
+
+    protected String getArtifactoryUrl() {
+        if (null == artifactoryUrl) {
+            artifactoryUrl = findArtifactoryUrl();
+        }
+        return artifactoryUrl;
+    }
+
+    protected SshdSettingsBuilder setArtifactoryUrl(String artifactoryUrl) {
+        this.artifactoryUrl = artifactoryUrl;
+        return this;
+    }
+
+    protected String getArtifactoryUsername() {
+        if (null == artifactoryUsername) {
+            artifactoryUsername = findArtifactoryUsername();
+        }
+        return artifactoryUsername;
+    }
+
+    protected SshdSettingsBuilder setArtifactoryUsername(String artifactoryUsername) {
+        this.artifactoryUsername = artifactoryUsername;
+        return this;
+    }
+
+    protected String getArtifactoryPassword() {
+        if (null == artifactoryPassword) {
+            artifactoryPassword = findArtifactoryPassword();
+        }
+        return artifactoryPassword;
+    }
+
+    protected SshdSettingsBuilder setArtifactoryPassword(String artifactoryPassword) {
+        this.artifactoryPassword = artifactoryPassword;
+        return this;
+    }
+
+    protected Configuration getConfiguration() {
+        return configuration;
+    }
+
+    protected SshdSettingsBuilder setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
+        return this;
+    }
+
+    protected RunnableComponent[] getExternalComponents() {
+        if (null == externalComponents) {
+            externalComponents = createExternalComponents();
+        }
+        return externalComponents;
+    }
+
+    protected SshdSettingsBuilder setExternalComponents(RunnableComponent[] externalComponents) {
+        this.externalComponents = externalComponents;
+        return this;
+    }
+
+    protected String getArtifactoryAuthorizationFilePath() {
+        if (null == artifactoryAuthorizationFilePath) {
+            artifactoryAuthorizationFilePath = findArtifactoryAuthorizationFilePath();
+        }
+        return artifactoryAuthorizationFilePath;
+    }
+
+    protected SshdSettingsBuilder setArtifactoryAuthorizationFilePath(String artifactoryAuthorizationFilePath) {
+        this.artifactoryAuthorizationFilePath = artifactoryAuthorizationFilePath;
+        return this;
+    }
+
+    protected String getRequestLogPath() {
+        if (null == requestLogPath) {
+            requestLogPath = findRequestLogPath();
+        }
+        return requestLogPath;
+    }
+
+    protected SshdSettingsBuilder setRequestLogPath(String requestLogPath) {
+        this.requestLogPath = requestLogPath;
+        return this;
+    }
+
+    protected static String getDefaultRoot() {
+        return DEFAULT_ROOT;
+    }
+
+    protected static int getDefaultSshdPort() {
+        return DEFAULT_SSHD_PORT;
+    }
+
+    protected static String getLogFileDateFormat() {
+        return LOG_FILE_DATE_FORMAT;
+    }
+
+    protected static int getDefaultJettyPort() {
+        return DEFAULT_JETTY_PORT;
+    }
+
+    protected static String getDefaultJettyWebappDir() {
+        return DEFAULT_JETTY_WEBAPP_DIR;
+    }
+
+    protected static List<String> getDefaultCommandFactories() {
+        return DEFAULT_COMMAND_FACTORIES;
+    }
+
+    public SshdSettingsInterface build() throws SshdConfigurationException {
+        return new SshdProxySettings(this);
+    }
+
+    public String getStringFromConfig(String config, String message) {
+        return getStringFromConfig(config, null, message);
+    }
+
+    public String getStringFromConfig(String config, String defaultValue, String message) {
+        final String s = configuration.getString(config, defaultValue);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("{} {}", message, s);
+        }
+
+        if (null != s) {
+            return s.trim();
+        }
+        return s;
+    }
+
+
 }

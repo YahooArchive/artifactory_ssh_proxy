@@ -15,16 +15,31 @@ package com.yahoo.sshd.tools.artifactory;
 import org.jfrog.artifactory.client.ning.NingRequest;
 
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
+import com.yahoo.sshd.server.settings.SshdProxySettings;
 
+/**
+ * This class contains the details about how to authenticate to artifactory.
+ * 
+ * If you do not use basic http auth, and instead use CAS, you'll need to subclass this class. If your instance requires
+ * you hit a CAS url first, and send the token as a header, you'll want to cache that tocken, and add it by overriding
+ * {@link ArtifactoryInformation#createNingRequest()} and subclass {@link DefaultNingRequest} to deal with this.
+ * 
+ * You will also need to subclass {@link SshdProxySettings} and override
+ * {@link SshdProxySettings#createArtifactoryInformation(String, String, String)} to return a subclass of your instance
+ * of {@link ArtifactoryInformation}
+ * 
+ * @author areese
+ * 
+ */
 public class ArtifactoryInformation {
     private final String artifactoryUrl;
     private final String artifactoryUsername;
     private final char[] artifactoryPassword;
 
     public ArtifactoryInformation(String artifactoryUrl, String artifactoryUsername, String artifactoryPassword) {
-        this.artifactoryUrl = artifactoryUrl.trim();
-        this.artifactoryUsername = artifactoryUsername.trim();
-        this.artifactoryPassword = artifactoryPassword.trim().toCharArray();
+        this.artifactoryUrl = artifactoryUrl;
+        this.artifactoryUsername = artifactoryUsername;
+        this.artifactoryPassword = (null != artifactoryPassword) ? artifactoryPassword.toCharArray() : null;
     }
 
     public String getArtifactoryUrl() {
@@ -85,10 +100,21 @@ public class ArtifactoryInformation {
         return true;
     }
 
+    /**
+     * Override this to return a NingRequest that automatically adds headers or any other informatnion you need to pass.
+     * 
+     * @return
+     */
     public NingRequest createNingRequest() {
         return new DefaultNingRequest(this);
     }
 
+    /**
+     * If you need to pass other headers or cookies to artifactory you'll want to sublcass this, and have
+     * {@link ArtifactoryInformation#createNingRequest()} return an instance of your subclass
+     * 
+     * @author areese
+     */
     public static class DefaultNingRequest implements NingRequest {
         protected final ArtifactoryInformation afInfo;
 
