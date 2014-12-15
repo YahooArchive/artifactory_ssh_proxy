@@ -12,28 +12,45 @@
  */
 package com.yahoo.sshd.server.settings;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.configuration.AbstractFileConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
+import com.yahoo.sshd.utils.RunnableComponent;
 
 @Test(groups = "unit")
 public class TestOptions {
     @Test
     public void testDefault() throws SshdConfigurationException {
+        // TODO: supposedly this test fails under windows.
+        // too lazy to check at this point, prob cause I wrote it a long time ago.
         if (System.getProperty("os.name").startsWith("Windows")) {
             return;
         }
-        
+
+        // tests set -Dsshd.propertiesFile=src/test/resources/sshd_proxy.properties
+
         SshdSettingsBuilder builder = new SshdSettingsBuilder(new String[] {});
         SshdSettingsInterface settings = builder.build();
 
         Assert.assertEquals(settings.getPort(), 2222);
         Assert.assertEquals(settings.getHostKeyPath(), "src/test/resources/conf/sshd_proxy/ssh_host_dsa_key");
-        Assert.assertEquals(settings.getHttpPort(), 8080);
+
+        // disabled by default
+        Assert.assertEquals(settings.getHttpPort(), SshdSettingsBuilder.DEFAULT_JETTY_PORT);
+
+        // We expect jetty to be disabled by default.
+        RunnableComponent[] externalComponents = settings.getExternalComponents();
+        Assert.assertEquals(externalComponents.length, 0);
+
 
         List<String> list = new ArrayList<>();
         for (DelegatingCommandFactory df : settings.getCfInstances()) {
@@ -41,5 +58,64 @@ public class TestOptions {
         }
 
         Assert.assertEquals(list, SshdSettingsBuilder.DEFAULT_COMMAND_FACTORIES);
+    }
+
+    @Test(enabled = false)
+    public void testEnableJetty() throws SshdConfigurationException {
+        // TODO: supposedly this test fails under windows.
+        // too lazy to check at this point, prob cause I wrote it a long time ago.
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            return;
+        }
+
+        String[] args = new String[] {"-f", ""};
+        SshdSettingsBuilder builder = new SshdSettingsBuilder(args);
+        SshdSettingsInterface settings = builder.build();
+
+        Assert.assertEquals(settings.getPort(), 2222);
+        Assert.assertEquals(settings.getHostKeyPath(), "src/test/resources/conf/sshd_proxy/ssh_host_dsa_key");
+
+        // disabled by default
+        Assert.assertEquals(settings.getHttpPort(), SshdSettingsBuilder.DEFAULT_JETTY_PORT);
+
+        // We expect jetty to be disabled by default.
+        RunnableComponent[] externalComponents = settings.getExternalComponents();
+        Assert.assertEquals(externalComponents.length, 0);
+
+
+        List<String> list = new ArrayList<>();
+        for (DelegatingCommandFactory df : settings.getCfInstances()) {
+            list.add(df.getClass().getCanonicalName());
+        }
+
+        Assert.assertEquals(list, SshdSettingsBuilder.DEFAULT_COMMAND_FACTORIES);
+    }
+
+    class TestSshdSettingsBuilder extends SshdSettingsBuilder {
+
+    }
+
+    @DataProvider
+    public Object[][] overrides() {
+        return new Object[][] {//
+        //
+                        {null, "src/test/resources/sshd_proxy.properties"},//
+                        {"", "src/test/resources/sshd_proxy.properties"},//
+                        {"src/test/resources/conf/debug.properties", "src/test/resources/conf/debug.properties"},//
+        };
+    }
+
+    @Test(dataProvider = "overrides")
+    public void testFindConfigFile(String override, String expected) throws Exception {
+        TestSshdSettingsBuilder testBuilder = new TestSshdSettingsBuilder();
+        Configuration config = testBuilder.findPropertiesConfiguration(override);
+
+        AbstractFileConfiguration fileConfiguration = (AbstractFileConfiguration) config;
+
+        // we need to create expected from a new file.
+        // because it's a complete filename.
+        File expectedFile = new File(expected);
+        String expectedPath = "file://" + expectedFile.getAbsolutePath();
+        Assert.assertEquals(fileConfiguration.getFileName(), expectedPath);
     }
 }
