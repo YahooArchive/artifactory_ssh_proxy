@@ -70,7 +70,7 @@ public class SshdSettingsBuilder {
     /**
      * Default port for jetty to listen on. 8080 was picked because most apis run on 4080
      */
-    public static final int DEFAULT_JETTY_PORT = 8080;
+    public static final int DEFAULT_JETTY_PORT = -1;
     public static final String DEFAULT_JETTY_WEBAPP_DIR = DEFAULT_ROOT + "/webapps";
 
     private int sshdPort;
@@ -318,7 +318,6 @@ public class SshdSettingsBuilder {
     }
 
     protected Configuration findPropertiesConfiguration(final String overriddenPath) throws ConfigurationException {
-
         String propertiesPath;
         if (null == overriddenPath || overriddenPath.isEmpty()) {
             propertiesPath = findPropertiesPath();
