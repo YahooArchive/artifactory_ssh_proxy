@@ -18,7 +18,6 @@ import java.util.List;
 
 import org.apache.commons.configuration.AbstractFileConfiguration;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -99,8 +98,8 @@ public class TestOptions {
     public Object[][] overrides() {
         return new Object[][] {//
         //
-                        {null, "src/test/resources/sshd_proxy.properties"},//
-                        {"", "src/test/resources/sshd_proxy.properties"},//
+                        {null, "src/test/resources/conf/sshd_proxy/sshd_proxy.properties"},//
+                        {"", "src/test/resources/conf/sshd_proxy/sshd_proxy.properties"},//
                         {"src/test/resources/conf/debug.properties", "src/test/resources/conf/debug.properties"},//
         };
     }

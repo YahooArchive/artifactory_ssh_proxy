@@ -232,7 +232,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
-                    <argLine>-Dsshd.propertiesFile=src/test/resources/sshd_proxy.properties</argLine>
                     <environmentVariables>
                         <ROOT>src/test/resources</ROOT>
                     </environmentVariables>
