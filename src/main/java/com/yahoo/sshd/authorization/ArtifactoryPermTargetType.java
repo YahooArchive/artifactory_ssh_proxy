@@ -13,5 +13,24 @@
 package com.yahoo.sshd.authorization;
 
 public enum ArtifactoryPermTargetType {
-    READ, WRITE
+    READ("read"), //
+    WRITE("write"); //
+
+    public String name;
+
+    private ArtifactoryPermTargetType(String name) {
+        this.name = name;
+    }
+
+    public static ArtifactoryPermTargetType parseType(String type) {
+        if (READ.name.equalsIgnoreCase(type)) {
+            return READ;
+        }
+
+        if (WRITE.name.equalsIgnoreCase(type)) {
+            return WRITE;
+        }
+
+        throw new IllegalArgumentException("Unknown ArtifactoryPermTargetType: " + type);
+    }
 }

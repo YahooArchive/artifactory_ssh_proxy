@@ -38,46 +38,85 @@ public class AuthFileParser {
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(authFile))) {
             String line;
+            int lineIndex = 0;
+
             while ((line = reader.readLine()) != null) {
+                lineIndex++;
                 line = line.trim();
-                if (line.length() > 0 && line.charAt(0) != '#') {
-                    // split for repo name and permission targets
-                    String[] repoPermTargets = line.split("=");
-                    if (repoPermTargets.length > 1) {
-                        String repoName = repoPermTargets[0];
-                        String permUserTargets = repoPermTargets[1];
-                        // split for permission targets
-                        String[] permTargets = permUserTargets.split(",");
-                        PermTarget permTarget = new PermTarget();
-                        for (String target : permTargets) {
-                            String[] targetTypes = target.split(":");
-                            if (targetTypes.length > 1) {
-                                String targetType = targetTypes[0];
-                                String userNameString = targetTypes[1];
-                                String[] userNames = userNameString.split("\\|");
-                                for (String userName : userNames) {
-                                    // check if we already have a user. if so,
-                                    // merge them
-                                    AuthUser authUser = permTarget.getUser(userName);
-                                    if (authUser == null) {
-                                        authUser = new AuthUser(userName);
-                                    }
-                                    if (userName.equals("*")) {
-                                        authUser.setAll(true);
-                                    }
-                                    if (targetType.equals(ArtifactoryPermTargetType.WRITE.name())) {
-                                        authUser.setWrite(true);
-                                    } else if (targetType.equals(ArtifactoryPermTargetType.READ.name())) {
-                                        authUser.setRead(true);
-                                    }
-                                    permTarget.addUser(authUser);
-                                }
-                            }
+
+                if (line.isEmpty() || line.charAt(0) == '#') {
+                    continue;
+                }
+
+                // split for repo name and permission targets
+                String[] repoPermTargets = line.split("=");
+                if (repoPermTargets.length <= 1) {
+                    LOG.info("Ignoring unparseable auth line {} at {}", line, Integer.valueOf(lineIndex));
+                    continue;
+                }
+
+                String repoName = repoPermTargets[0];
+                String permUserTargets = repoPermTargets[1];
+
+                if (repoName.isEmpty() || permUserTargets.isEmpty()) {
+                    LOG.info("Ignoring unparseable auth line {} at {}, repoName or userTargets is empty", line,
+                                    Integer.valueOf(lineIndex));
+                    continue;
+                }
+
+                // split for permission targets
+                String[] permTargets = permUserTargets.split(",");
+
+                PermTarget permTarget = new PermTarget();
+                for (String target : permTargets) {
+                    String[] targetTypes = target.split(":");
+
+                    if (targetTypes.length <= 1) {
+                        // no targets.
+                        continue;
+                    }
+
+                    String targetType = targetTypes[0];
+                    String userNameString = targetTypes[1];
+
+                    if (targetType.isEmpty() || userNameString.isEmpty()) {
+                        continue;
+                    }
+
+                    String[] userNames = userNameString.split("\\|");
+                    for (String userName : userNames) {
+                        // check if we already have a user. if so,
+                        // merge them
+                        AuthUser authUser = permTarget.getUser(userName);
+                        if (authUser == null) {
+                            authUser = new AuthUser(userName);
                         }
-                        authorizationHashMap.put(repoName, permTarget);
+
+                        try {
+                            ArtifactoryPermTargetType type = ArtifactoryPermTargetType.parseType(targetType);
+
+                            switch (type) {
+                                case READ:
+                                    authUser.setRead(true);
+                                    break;
+
+                                case WRITE:
+                                    authUser.setWrite(true);
+                                    break;
+
+                                default:
+                                    // unknown types.
+                                    break;
+                            }
+
+                            permTarget.addUser(authUser);
+                        } catch (IllegalArgumentException iae) {
+                            LOG.error("Illegal target type: " + targetType);
+                        }
                     }
                 }
-            }
+                authorizationHashMap.put(repoName, permTarget);
+            } // end while
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -21,6 +21,9 @@ public class AuthUser {
 
     public AuthUser(final String userName) {
         this.userName = userName;
+        if ("*".equals(userName)) {
+            this.all = true;
+        }
     }
 
     public boolean isRead() {
@@ -39,6 +42,10 @@ public class AuthUser {
         this.write = write;
     }
 
+    /**
+     * 
+     * @return true if this is a wildcard user.
+     */
     public boolean isAll() {
         return all;
     }

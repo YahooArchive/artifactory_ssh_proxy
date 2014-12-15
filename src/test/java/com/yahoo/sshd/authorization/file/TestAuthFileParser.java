@@ -12,44 +12,101 @@
  */
 package com.yahoo.sshd.authorization.file;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import junit.framework.Assert;
-
+import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class TestAuthFileParser {
 
-    @Test()
-    public void testAuthFileParser() throws Exception {
+    @DataProvider
+    public Object[][] authFiles() {
+        return new Object[][] {//
+        // gack, need to break this test down better.
+        // also need to have bad files.
+        {"src/test/resources/auth/auth.txt"},//
+        };//
+    }
+
+    @Test(dataProvider = "authFiles")
+    public void testAuthFileParser(String filePath) throws Exception {
         ConcurrentHashMap<String, PermTarget> authorizationHashMap = new ConcurrentHashMap<String, PermTarget>();
-        String path = "src/test/resources/auth/auth.txt";
-        AuthFileParser.parse(path, authorizationHashMap);
-        PermTarget actualPermTargetRepoX = authorizationHashMap.get("repoX");
-        Assert.assertNotNull(actualPermTargetRepoX);
-        Assert.assertTrue(actualPermTargetRepoX.userExists("a"));
-        Assert.assertTrue(actualPermTargetRepoX.userExists("b"));
-        Assert.assertFalse(actualPermTargetRepoX.userExists("c"));
-        Assert.assertTrue(actualPermTargetRepoX.canWrite("a"));
-        Assert.assertTrue(actualPermTargetRepoX.canWrite("b"));
-        Assert.assertFalse(actualPermTargetRepoX.canWrite("c"));
-        Assert.assertTrue(actualPermTargetRepoX.canRead("a"));
-        Assert.assertTrue(actualPermTargetRepoX.canRead("b"));
-        Assert.assertTrue(actualPermTargetRepoX.canRead("c"));
 
-        PermTarget actualPermTargetRepoY = authorizationHashMap.get("repoY");
-        Assert.assertNotNull(actualPermTargetRepoY);
-        Assert.assertFalse(actualPermTargetRepoY.userExists("a"));
-        Assert.assertTrue(actualPermTargetRepoY.canRead("a"));
-        Assert.assertTrue(actualPermTargetRepoY.canWrite("a"));
+        AuthFileParser.parse(filePath, authorizationHashMap);
 
-        PermTarget actualPermTargetRepoZ = authorizationHashMap.get("repoZ");
-        Assert.assertNotNull(actualPermTargetRepoZ);
-        Assert.assertTrue(actualPermTargetRepoZ.canWrite("z"));
-        Assert.assertTrue(actualPermTargetRepoZ.canRead("z"));
-        Assert.assertFalse(actualPermTargetRepoZ.canWrite("a"));
-        Assert.assertFalse(actualPermTargetRepoZ.canRead("a"));
+        Assert.assertFalse(authorizationHashMap.isEmpty());
 
+        {
+            PermTarget actualPermTargetRepoX = authorizationHashMap.get("repoX");
+            Set<String> existsInX = new HashSet<String>(Arrays.asList(new String[] {"a", "b"}));
+            Set<String> readInX = new HashSet<String>(Arrays.asList(new String[] {"a", "b", "c"}));
+            Set<String> writeInX = new HashSet<String>(Arrays.asList(new String[] {"a", "b"}));
+
+            Set<String> notExistsInX = new HashSet<String>(Arrays.asList(new String[] {"c"}));
+            Set<String> notReadInX = new HashSet<String>(Arrays.asList(new String[] {}));
+            Set<String> notWriteInX = new HashSet<String>(Arrays.asList(new String[] {"c"}));
+            validatePerms(actualPermTargetRepoX, existsInX, readInX, writeInX, notExistsInX, notReadInX, notWriteInX);
+        }
+
+        {
+            PermTarget actualPermTargetRepoY = authorizationHashMap.get("repoY");
+            Set<String> existsInY = new HashSet<String>(Arrays.asList(new String[] {}));
+            Set<String> readInY = new HashSet<String>(Arrays.asList(new String[] {"a"}));
+            Set<String> writeInY = new HashSet<String>(Arrays.asList(new String[] {"a"}));
+
+            Set<String> notExistsInY = new HashSet<String>(Arrays.asList(new String[] {"a"}));
+            Set<String> notReadInY = new HashSet<String>(Arrays.asList(new String[] {}));
+            Set<String> notWriteInY = new HashSet<String>(Arrays.asList(new String[] {}));
+
+            validatePerms(actualPermTargetRepoY, existsInY, readInY, writeInY, notExistsInY, notReadInY, notWriteInY);
+        }
+
+        {
+            PermTarget actualPermTargetRepoZ = authorizationHashMap.get("repoZ");
+            Set<String> existsInZ = new HashSet<String>(Arrays.asList(new String[] {"z"}));
+            Set<String> readInZ = new HashSet<String>(Arrays.asList(new String[] {"z"}));
+            Set<String> writeInZ = new HashSet<String>(Arrays.asList(new String[] {"z"}));
+
+            Set<String> notExistsInZ = new HashSet<String>(Arrays.asList(new String[] {"a"}));
+            Set<String> notReadInZ = new HashSet<String>(Arrays.asList(new String[] {"a"}));
+            Set<String> notWriteInZ = new HashSet<String>(Arrays.asList(new String[] {"a"}));
+
+            validatePerms(actualPermTargetRepoZ, existsInZ, readInZ, writeInZ, notExistsInZ, notReadInZ, notWriteInZ);
+        }
+    }
+
+    public void validatePerms(PermTarget permTarget, Set<String> usersThatExist, Set<String> usersThatCanRead,
+                    Set<String> usersThatCanWrite, Set<String> notUsersThatExist, Set<String> notUsersThatCanRead,
+                    Set<String> notUsersThatCanWrite) {
+        Assert.assertNotNull(permTarget);
+
+        for (String userName : usersThatExist) {
+            Assert.assertTrue(permTarget.userExists(userName), "user '" + userName + "' did not exist");
+        }
+
+        for (String userName : usersThatCanRead) {
+            Assert.assertTrue(permTarget.canRead(userName), "user '" + userName + "' cannot read");
+        }
+
+        for (String userName : usersThatCanWrite) {
+            Assert.assertTrue(permTarget.canWrite(userName), "user '" + userName + "' cannot write");
+        }
+
+        for (String userName : notUsersThatExist) {
+            Assert.assertFalse(permTarget.userExists(userName), "user '" + userName + "' did exist");
+        }
+
+        for (String userName : notUsersThatCanRead) {
+            Assert.assertFalse(permTarget.canRead(userName), "user '" + userName + "' can read");
+        }
+
+        for (String userName : notUsersThatCanWrite) {
+            Assert.assertFalse(permTarget.canWrite(userName), "user '" + userName + "' can write");
+        }
     }
 
 }

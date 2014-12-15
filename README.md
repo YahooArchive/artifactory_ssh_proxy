@@ -93,3 +93,28 @@ To run the proxy locally, do the following:
 1.  Build the jar if you haven't already:  `mvn clean install`
 2.  Get your classpath:  `mvn dependency:build-classpath -Dmdep.outputFile=target/sshd_classpath`
 3.  Run the proxy:  ``java -cp target/sshd_proxy-0.2.0-SNAPSHOT.jar:`cat target/sshd_classpath` com.yahoo.sshd.server.Sshd -f src/main/resources/sshd_proxy.properties``
+
+## Misc notes.
+
+The sshd proxy embeds jetty to allow custom functionality.
+If you have a vip that performs status checks over http, you can use jetty to communicate back to the vip.
+
+If you are running multiple instances of the proxy behind a vip, you'll want to ensure that the host keys 
+of all hosts that are behind the vip match.
+
+Currently the only functionality supported is scp, and it does not do checksum based uploads yet.
+This means that for every upload, it will upload the entire contents of the file.
+
+If you have a long trip to your artifactory server, you might get timeout's with large file uploads
+via the proxy.
+
+The shell functionality only returns an informational message.
+You will still need to run sshd on port 22 to manage your machine, this proxy is only for proxying to artifactory
+and does not replace sshd.
+
+The informational message allows you to do troubleshooting of keys by having a user ssh to the port the proxy is on
+and that will verify that the proxy is aware of and is accepting their keys.
+This also allows you to separate the people who can upload from the people who manage the actual machine.
+
+The auth.txt file format is documented in src/test/resources:
+    TODO:  document this outside the file.
