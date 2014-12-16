@@ -71,6 +71,7 @@ public class TestLoader {
      * @throws IOException
      * @throws InterruptedException
      */
+    @SuppressWarnings("resource")
     @Test
     public void testLoader() throws IOException, InterruptedException {
         MultiUserAuthorizedKeysMap authorizedKeysMap = Mockito.mock(MultiUserAuthorizedKeysMap.class);

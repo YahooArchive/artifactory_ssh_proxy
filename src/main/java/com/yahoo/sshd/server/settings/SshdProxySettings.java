@@ -120,8 +120,9 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
         if (null == artifactoryUrl || artifactoryUrl.isEmpty() || null == artifactoryUsername
                         || null == artifactoryPassword) {
-            throw new SshdConfigurationException(
-                            "invalid artifactory configuration, url, user and password must be specified");
+            throw new SshdConfigurationException("invalid artifactory configuration, url: " + artifactoryUrl
+                            + ", user: " + artifactoryUsername + " and password: " + artifactoryPassword
+                            + "  must be specified");
         }
     }
 
