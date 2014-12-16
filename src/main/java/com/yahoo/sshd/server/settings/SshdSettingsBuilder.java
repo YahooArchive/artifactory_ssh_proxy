@@ -169,6 +169,7 @@ public class SshdSettingsBuilder {
      * 
      * @return an array of {@link RunnableComponent} that also need to be started.
      */
+    @SuppressWarnings("resource")
     protected RunnableComponent[] createExternalComponents() {
         if (-1 == httpPort || null == webappsDir) {
             return new RunnableComponent[] {};
