@@ -119,7 +119,8 @@ public class TestOptions {
         // we can assume ROOT is set in the env.
         // later we can play games and configure surefire to test different roots.
         // TODO: remove check for ROOT from env.
-        Assert.assertEquals(SshdSettingsBuilder.findRoot(), "src/test/resources/");
+        SshdSettingsBuilder sb = new SshdSettingsBuilder();
+        Assert.assertEquals(sb.findRoot(), "src/test/resources/");
     }
 
     @Test

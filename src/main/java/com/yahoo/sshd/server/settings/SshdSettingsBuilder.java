@@ -195,7 +195,7 @@ public class SshdSettingsBuilder {
      * @return the username to access artifactory as
      */
     protected String findArtifactoryUsername() {
-        return getStringFromConfig("sshd.artifactoryUsername", "got artifactoryUrl");
+        return getStringFromConfig("sshd.artifactoryUsername", "got artifactoryUsername");
     }
 
     /**
@@ -285,7 +285,7 @@ public class SshdSettingsBuilder {
      * 
      * @return root path to use
      */
-    static String findRoot() {
+    protected String findRoot() {
         String root = System.getenv("ROOT");
 
         if (null == root) {
@@ -639,5 +639,16 @@ public class SshdSettingsBuilder {
             return s.trim();
         }
         return s;
+    }
+
+
+    public int getIntFromConfig(String config, int defaultValue, String message) {
+        final int intValue = configuration.getInt(config, defaultValue);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("{} {}", message, Integer.valueOf(intValue));
+        }
+
+        return intValue;
     }
 }

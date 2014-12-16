@@ -129,6 +129,7 @@ public class TestFileTreeWalker {
         Assert.assertEquals(fv.visitFileFailed(mockedPath, new IOException()), FileVisitResult.CONTINUE);
     }
 
+    @SuppressWarnings("boxing")
     @Test
     public void testPkExcludes() throws IOException {
         String base = "src/test/resources/home/";
