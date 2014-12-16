@@ -99,6 +99,7 @@ public class MessageShellFactory extends ProcessShellFactory {
         private final TtyFilterInputStream out;
         private final TtyFilterInputStream err;
 
+        @SuppressWarnings("resource")
         MessageShell() {
             out = new TtyFilterInputStream(new MessageOutputStream(messageBytes));
             err = new TtyFilterInputStream(new EmptyInputStream());

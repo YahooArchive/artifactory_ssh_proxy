@@ -70,6 +70,7 @@ public class PEMHostKeyProvider extends AbstractKeyPairProvider {
         return null;
     }
 
+    @Override
     public synchronized Iterable<KeyPair> loadKeys() {
         ArrayList<KeyPair> keyPairList = new ArrayList<KeyPair>();
 

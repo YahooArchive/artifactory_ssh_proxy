@@ -150,8 +150,12 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
                                         KarafPublickeyAuthenticator.this.authorizedKeys);
                         this.fileAvailable = Boolean.TRUE;
                         this.lastModificationDate = newModificationDate;
+
+                        // KarafPublickeyAuthenticator.parseAuthorizedKeys closes the inputstream for us.
+                        @SuppressWarnings("resource")
                         Map<PublicKey, AuthorizedKey> newKeys =
                                         KarafPublickeyAuthenticator.parseAuthorizedKeys(new FileInputStream(af));
+
                         this.setKeys(newKeys);
                         LOGGER.debug("Successfully parsed {} keys from file {}", Integer.valueOf(newKeys.size()),
                                         KarafPublickeyAuthenticator.this.authorizedKeys);
@@ -234,10 +238,12 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
                     reader.close();
                 }
             } catch (IOException ioe) {
+                ioe.printStackTrace();
             }
             try {
                 is.close();
             } catch (IOException ioe) {
+                ioe.printStackTrace();
             }
         }
     }
