@@ -49,11 +49,11 @@ public class TestArtifactoryMetaData {
     // this isn't actually a test.
     @Test(enabled = false)
     public void directoryResponse(ArtifactMetaData data) throws ParseException {
-        Assert.assertEquals(data.getCreated(), ArtifactMetaDataBuilder.DATE_FORMATTER.format("2013-09-06T21:03:00.973Z")
+        Assert.assertEquals(data.getCreated(), ArtifactMetaDataBuilder.getDateFormatter().format("2013-09-06T21:03:00.973Z")
                         .getTime());
-        Assert.assertEquals(data.getLastModified(), ArtifactMetaDataBuilder.DATE_FORMATTER
+        Assert.assertEquals(data.getLastModified(), ArtifactMetaDataBuilder.getDateFormatter()
                         .format("2013-09-06T21:03:00.973Z").getTime());
-        Assert.assertEquals(data.getLastUpdated(), ArtifactMetaDataBuilder.DATE_FORMATTER.format("2013-09-06T21:03:00.973Z")
+        Assert.assertEquals(data.getLastUpdated(), ArtifactMetaDataBuilder.getDateFormatter().format("2013-09-06T21:03:00.973Z")
                         .getTime());
         Assert.assertEquals(data.getRepo(), "ssh-proxy-test");
         Assert.assertEquals(data.getSize(), 0);
@@ -98,11 +98,11 @@ public class TestArtifactoryMetaData {
                     IOException, ParseException {
         ArtifactMetaData data = ArtifactMetaData.decode(loadFile("src/test/resources/json/empty.json"));
 
-        Assert.assertEquals(data.getCreated(), ArtifactMetaDataBuilder.DATE_FORMATTER.format("2013-09-13T16:35:03.331Z")
+        Assert.assertEquals(data.getCreated(), ArtifactMetaDataBuilder.getDateFormatter().format("2013-09-13T16:35:03.331Z")
                         .getTime());
-        Assert.assertEquals(data.getLastModified(), ArtifactMetaDataBuilder.DATE_FORMATTER
+        Assert.assertEquals(data.getLastModified(), ArtifactMetaDataBuilder.getDateFormatter()
                         .format("2013-09-13T16:35:03.331Z").getTime());
-        Assert.assertEquals(data.getLastUpdated(), ArtifactMetaDataBuilder.DATE_FORMATTER.format("2013-09-13T16:35:03.331Z")
+        Assert.assertEquals(data.getLastUpdated(), ArtifactMetaDataBuilder.getDateFormatter().format("2013-09-13T16:35:03.331Z")
                         .getTime());
         Assert.assertEquals(data.getRepo(), "ssh-proxy-test");
         Assert.assertEquals(data.getSize(), 0);
@@ -117,11 +117,11 @@ public class TestArtifactoryMetaData {
                     IOException, ParseException {
         ArtifactMetaData data = ArtifactMetaData.decode(loadFile("src/test/resources/json/parent_directory.json"));
 
-        Assert.assertEquals(data.getCreated(), ArtifactMetaDataBuilder.DATE_FORMATTER.format("2013-09-06T21:03:00.973Z")
+        Assert.assertEquals(data.getCreated(), ArtifactMetaDataBuilder.getDateFormatter().format("2013-09-06T21:03:00.973Z")
                         .getTime());
-        Assert.assertEquals(data.getLastModified(), ArtifactMetaDataBuilder.DATE_FORMATTER
+        Assert.assertEquals(data.getLastModified(), ArtifactMetaDataBuilder.getDateFormatter()
                         .format("2013-09-06T21:03:00.973Z").getTime());
-        Assert.assertEquals(data.getLastUpdated(), ArtifactMetaDataBuilder.DATE_FORMATTER.format("2013-09-06T21:03:00.973Z")
+        Assert.assertEquals(data.getLastUpdated(), ArtifactMetaDataBuilder.getDateFormatter().format("2013-09-06T21:03:00.973Z")
                         .getTime());
         Assert.assertEquals(data.getRepo(), "ssh-proxy-test");
         Assert.assertEquals(data.getSize(), 0);
@@ -136,11 +136,11 @@ public class TestArtifactoryMetaData {
                     ParseException {
         ArtifactMetaData data = ArtifactMetaData.decode(loadFile("src/test/resources/json/file.json"));
 
-        Assert.assertEquals(data.getCreated(), ArtifactMetaDataBuilder.DATE_FORMATTER.format("2013-09-06T21:03:16.526Z")
+        Assert.assertEquals(data.getCreated(), ArtifactMetaDataBuilder.getDateFormatter().format("2013-09-06T21:03:16.526Z")
                         .getTime());
-        Assert.assertEquals(data.getLastModified(), ArtifactMetaDataBuilder.DATE_FORMATTER
+        Assert.assertEquals(data.getLastModified(), ArtifactMetaDataBuilder.getDateFormatter()
                         .format("2013-09-11T16:14:15.840Z").getTime());
-        Assert.assertEquals(data.getLastUpdated(), ArtifactMetaDataBuilder.DATE_FORMATTER.format("2013-09-11T16:14:15.840Z")
+        Assert.assertEquals(data.getLastUpdated(), ArtifactMetaDataBuilder.getDateFormatter().format("2013-09-11T16:14:15.840Z")
                         .getTime());
         Assert.assertEquals(data.getRepo(), "ssh-proxy-test");
         Assert.assertEquals(data.getSize(), 755);

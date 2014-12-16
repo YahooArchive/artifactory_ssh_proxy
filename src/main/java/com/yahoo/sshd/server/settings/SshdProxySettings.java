@@ -259,18 +259,20 @@ public class SshdProxySettings implements SshdSettingsInterface {
      * create a list of factories from a list of cipher names
      */
     @SuppressWarnings("unchecked")
-    List<NamedFactory<Cipher>> createCipherFactoryList(List<String> cipherNames) {
+    protected List<NamedFactory<Cipher>> createCipherFactoryList(List<String> cipherNames) {
 
-        final NamedFactory<Cipher>[] cipherArray = new NamedFactory[] {new AES128CTR.Factory(), //
-                        new AES256CTR.Factory(), //
-                        new ARCFOUR128.Factory(), //
-                        new ARCFOUR256.Factory(), //
-                        new AES128CBC.Factory(), //
-                        new TripleDESCBC.Factory(), //
-                        new BlowfishCBC.Factory(), //
-                        new AES192CBC.Factory(), //
-                        new AES256CBC.Factory(), //
-        };
+        final NamedFactory<Cipher>[] cipherArray = new NamedFactory[] { //
+                        //
+                                        new AES128CTR.Factory(), //
+                                        new AES256CTR.Factory(), //
+                                        new ARCFOUR128.Factory(), //
+                                        new ARCFOUR256.Factory(), //
+                                        new AES128CBC.Factory(), //
+                                        new TripleDESCBC.Factory(), //
+                                        new BlowfishCBC.Factory(), //
+                                        new AES192CBC.Factory(), //
+                                        new AES256CBC.Factory(), //
+                        };
 
         // first get all of the ciphers we know about in a set
         final Map<String, NamedFactory<Cipher>> nameMap = new HashMap<>();

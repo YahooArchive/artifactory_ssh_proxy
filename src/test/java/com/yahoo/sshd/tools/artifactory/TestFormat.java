@@ -19,8 +19,8 @@ import org.testng.annotations.Test;
 public class TestFormat {
     @Test
     public void testBadIsZero() {
-        Assert.assertEquals(ArtifactMetaDataBuilder.DATE_FORMATTER.formatLongNoException(null), 0);
-        Assert.assertEquals(ArtifactMetaDataBuilder.DATE_FORMATTER.formatLongNoException(""), 0);
-        Assert.assertEquals(ArtifactMetaDataBuilder.DATE_FORMATTER.formatLongNoException("dasdsa"), 0);
+        Assert.assertEquals(ArtifactMetaDataBuilder.getDateFormatter().formatLongNoException(null), 0);
+        Assert.assertEquals(ArtifactMetaDataBuilder.getDateFormatter().formatLongNoException(""), 0);
+        Assert.assertEquals(ArtifactMetaDataBuilder.getDateFormatter().formatLongNoException("dasdsa"), 0);
     }
 }
