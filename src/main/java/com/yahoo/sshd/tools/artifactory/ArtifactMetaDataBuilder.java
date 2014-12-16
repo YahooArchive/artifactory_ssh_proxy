@@ -21,7 +21,7 @@ import com.yahoo.sshd.utils.ThreadSafeSimpleDateFormat;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ArtifactMetaDataBuilder {
-    static final ThreadSafeSimpleDateFormat DATE_FORMATTER = new ThreadSafeSimpleDateFormat(
+    private static final ThreadSafeSimpleDateFormat DATE_FORMATTER = new ThreadSafeSimpleDateFormat(
                     "yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
     private List<LinkedHashMap<String, String>> children;
@@ -63,6 +63,10 @@ public class ArtifactMetaDataBuilder {
 
     public String getUri() {
         return uri;
+    }
+
+    public static ThreadSafeSimpleDateFormat getDateFormatter() {
+        return DATE_FORMATTER;
     }
 
     public ArtifactMetaDataBuilder setChildren(List<LinkedHashMap<String, String>> children) {
@@ -110,8 +114,8 @@ public class ArtifactMetaDataBuilder {
     }
 
     ArtifactMetaData build() throws ParseException {
-        return new ArtifactMetaData(ChildArtifact.build(children), DATE_FORMATTER.format(created),
-                        DATE_FORMATTER.format(lastModified), DATE_FORMATTER.format(lastUpdated), modifiedBy, repo,
+        return new ArtifactMetaData(ChildArtifact.build(children), getDateFormatter().format(created),
+                        getDateFormatter().format(lastModified), getDateFormatter().format(lastUpdated), modifiedBy, repo,
                         getSize(), uri);
     }
 }

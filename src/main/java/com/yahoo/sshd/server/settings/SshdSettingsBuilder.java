@@ -97,7 +97,7 @@ public class SshdSettingsBuilder {
                     DefaultScpCommandFactory.class.getCanonicalName(), //
                     }));
 
-    SshdSettingsBuilder() {
+    protected SshdSettingsBuilder() {
 
     }
 
@@ -616,7 +616,7 @@ public class SshdSettingsBuilder {
         return DEFAULT_JETTY_WEBAPP_DIR;
     }
 
-    protected static List<String> getDefaultCommandFactories() {
+    public static List<String> getDefaultCommandFactories() {
         return DEFAULT_COMMAND_FACTORIES;
     }
 
@@ -640,6 +640,4 @@ public class SshdSettingsBuilder {
         }
         return s;
     }
-
-
 }
