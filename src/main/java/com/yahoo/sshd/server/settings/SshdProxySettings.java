@@ -53,13 +53,34 @@ import com.yahoo.sshd.utils.RunnableComponent;
 public class SshdProxySettings implements SshdSettingsInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(SshdProxySettings.class);
 
+    /**
+     * The port the ssh server listens on.
+     */
     protected final int port;
+
+    /**
+     * The port the optional jetty service listens on.
+     */
     protected final int httpPort;
+
+    /**
+     * The path to the host key the server uses
+     */
     protected final String hostKeyPath;
+
+    /**
+     * An odd hackery to allow the CommandFactories to be changed while doing development TODO: remove/refactor out.
+     */
     protected final List<DelegatingCommandFactory> cfInstances;
 
+    /**
+     * Information required to connect to artifactory
+     */
     protected final ArtifactoryInformation artifactoryInfo;
 
+    /**
+     * An array of external services that are running. TODO: clean shutdown when we exit.
+     */
     protected final RunnableComponent[] externalComponents;
 
     protected final String artifactoryAuthorizationFilePath;

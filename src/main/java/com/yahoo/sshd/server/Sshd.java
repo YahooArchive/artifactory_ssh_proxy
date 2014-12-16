@@ -14,6 +14,9 @@ package com.yahoo.sshd.server;
 
 import java.io.IOException;
 import java.security.Security;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -21,6 +24,7 @@ import org.apache.commons.daemon.DaemonInitException;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.common.forward.DefaultTcpipForwarderFactory;
+import org.apache.sshd.common.util.CloseableUtils;
 import org.apache.sshd.common.util.SecurityUtils;
 import org.apache.sshd.server.keyprovider.PEMHostKeyProviderFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -180,8 +184,7 @@ public class Sshd implements Daemon, Runnable {
             throw new RuntimeException("PublicKey Auth loading failed", e);
         }
 
-        RunnableComponent[] externalComponents = settings.getExternalComponents();
-        for (RunnableComponent component : externalComponents) {
+        for (RunnableComponent component : settings.getExternalComponents()) {
             try {
                 ThreadUtils.externalsThreadPool().submit(component);
             } catch (Exception e) {
@@ -255,10 +258,22 @@ public class Sshd implements Daemon, Runnable {
      * Stop the operation of this <code>Daemon</code> instance. Note that the proper place to free any allocated
      * resources such as sockets or file descriptors is in the destroy method, as the container may restart the Daemon
      * by calling start() after stop().
+     * 
+     * @throws InterruptedException
      */
     @Override
-    public void stop() throws Exception {
+    public void stop() throws InterruptedException, IOException {
+        LOGGER.info("Stopping external services");
+        // stop jetty et. al.
+        // reverse the order so we stop in the opposite order we started.
+        List<RunnableComponent> list = Arrays.asList(settings.getExternalComponents());
+        Collections.reverse(list);
+        CloseableUtils.sequential(list.toArray(new RunnableComponent[] {})).close(false).await();
+
+        LOGGER.info("Stopping sshd");
         sshd.stop();
+
+        LOGGER.info("Exiting");
     }
 
     /**

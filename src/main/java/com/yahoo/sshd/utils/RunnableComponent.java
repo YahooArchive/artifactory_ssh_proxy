@@ -12,9 +12,21 @@
  */
 package com.yahoo.sshd.utils;
 
-public interface RunnableComponent extends Runnable {
+import java.io.Closeable;
+import java.io.IOException;
+
+/**
+ * An interface for something that can run, has a name and can be stopped.
+ * 
+ * @author areese
+ * 
+ */
+public interface RunnableComponent extends Runnable, Closeable {
     @Override
     public void run();
 
     public String getName();
+
+    @Override
+    public void close() throws IOException;
 }

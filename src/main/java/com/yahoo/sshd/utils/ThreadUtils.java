@@ -12,6 +12,8 @@
  */
 package com.yahoo.sshd.utils;
 
+import groovy.time.BaseDuration.From;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -51,24 +53,42 @@ public class ThreadUtils {
         }
     }
 
+    // TODO: Fix to allow this to be configured
     private static final ExecutorService CACHED_THREAD_POOL = new ThreadPoolExecutor(20, 100, 60L, TimeUnit.SECONDS,
                     new SynchronousQueue<Runnable>(), new ThreadUtils.DefaultThreadFactory("SSH Proxy Thread Pool"));
 
+    /**
+     * Currently only used by {@link com.yahoo.sshd.authentication.file.AuthorizedKeysFileScanner}
+     * 
+     * @return
+     */
     public static ExecutorService cachedThreadPool() {
         return CACHED_THREAD_POOL;
     }
 
+    // TODO: Fix to allow this to be configured
     private static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(20,
                     new ThreadUtils.DefaultThreadFactory("SSH Proxy Thread Pool"));
 
+    /**
+     * Used by {@link org.apache.sshd.common.AbstractFactoryManager#getScheduledExecutorService()}
+     * 
+     * @return
+     */
     public static ScheduledExecutorService scheduledExecutorServer() {
         return SCHEDULED_EXECUTOR_SERVICE;
     }
 
+    // TODO: Fix to allow this to be configured
     private static final ExecutorService EXTERNALS_EXECUTOR_SERVICE = new ThreadPoolExecutor(1, 5, 60L,
                     TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), new ThreadUtils.DefaultThreadFactory(
                                     "SSH Externals Thread Pool"));
 
+    /**
+     * Thread pool for running external parts. TODO: Why is this any different {@link ThreadUtils#cachedThreadPool()}
+     * 
+     * @return
+     */
     public static ExecutorService externalsThreadPool() {
         return EXTERNALS_EXECUTOR_SERVICE;
     }
