@@ -90,10 +90,6 @@ public class TestOptions {
         Assert.assertEquals(list, SshdSettingsBuilder.DEFAULT_COMMAND_FACTORIES);
     }
 
-    class TestSshdSettingsBuilder extends SshdSettingsBuilder {
-
-    }
-
     @DataProvider
     public Object[][] overrides() {
         return new Object[][] {//
@@ -106,7 +102,7 @@ public class TestOptions {
 
     @Test(dataProvider = "overrides")
     public void testFindConfigFile(String override, String expected) throws Exception {
-        TestSshdSettingsBuilder testBuilder = new TestSshdSettingsBuilder();
+        SshdSettingsBuilder testBuilder = new SshdSettingsBuilder();
         Configuration config = testBuilder.findPropertiesConfiguration(override);
 
         AbstractFileConfiguration fileConfiguration = (AbstractFileConfiguration) config;
@@ -117,4 +113,38 @@ public class TestOptions {
         String expectedPath = "file://" + expectedFile.getAbsolutePath();
         Assert.assertEquals(fileConfiguration.getFileName(), expectedPath);
     }
+
+    @Test
+    public void testRoot() {
+        // we can assume ROOT is set in the env.
+        // later we can play games and configure surefire to test different roots.
+        // TODO: remove check for ROOT from env.
+        Assert.assertEquals(SshdSettingsBuilder.findRoot(), "src/test/resources/");
+    }
+
+    @Test
+    public void testConfDir() {
+        SshdSettingsBuilder sb = new SshdSettingsBuilder();
+        Assert.assertEquals(sb.getConfDir(), "src/test/resources/conf/sshd_proxy/");
+    }
+
+    @Test
+    public void testLogsDir() {
+        SshdSettingsBuilder sb = new SshdSettingsBuilder();
+        Assert.assertEquals(sb.getLogsDir(), "src/test/resources/logs/sshd_proxy/");
+    }
+
+    @Test
+    public void testSystemNameDir() {
+        SshdSettingsBuilder sb = new SshdSettingsBuilder();
+        Assert.assertEquals(sb.getSystemNameDir(), "/sshd_proxy/");
+    }
+
+
+    @Test
+    public void testAuthDir() {
+        SshdSettingsBuilder sb = new SshdSettingsBuilder();
+        Assert.assertEquals(sb.getAuthDir(), "src/test/resources/conf/sshd_proxy/auth/");
+    }
+
 }

@@ -50,7 +50,10 @@ public class SshdSettingsBuilder {
     /**
      * The name of this system, used in building some strings.
      */
+    @Deprecated
     private static final String SYSTEM_NAME = "sshd_proxy";
+
+    private static final String SYSTEM_NAME_DIR = File.separator + "sshd_proxy" + File.separator;
 
     /**
      * getRoot() is prepends to this.
@@ -75,7 +78,7 @@ public class SshdSettingsBuilder {
 
     private int sshdPort;
     private int httpPort;
-    private String webappsDir = "";
+    private String webappsDir;
     private String hostKeyPath;
     private String rootPath;
     private List<String> commandFactoryStrings = new ArrayList<>();
@@ -145,8 +148,7 @@ public class SshdSettingsBuilder {
      * @return a path to write access logs to.
      */
     protected String findRequestLogPath() {
-        final String defaultRequestLogFilePath =
-                        getRoot() + "/logs/" + getSystemName() + "/access." + LOG_FILE_DATE_FORMAT + ".log";
+        final String defaultRequestLogFilePath = getLogsDir() + "access." + LOG_FILE_DATE_FORMAT + ".log";
 
         return getStringFromConfig("sshd.requestLogFilePath", defaultRequestLogFilePath, "got request log file path");
     }
@@ -158,7 +160,7 @@ public class SshdSettingsBuilder {
      * @return a path to write access logs to.
      */
     protected String findArtifactoryAuthorizationFilePath() {
-        final String defaultArtifactoryAuthorizationFilePath = getRoot() + "conf/" + getSystemName() + "/auth/auth.txt";
+        final String defaultArtifactoryAuthorizationFilePath = getAuthDir() + "auth.txt";
 
         return getStringFromConfig("sshd.artifactoryAuthorizationFilePath", defaultArtifactoryAuthorizationFilePath,
                         "got artifactory authorization file path");
@@ -238,7 +240,7 @@ public class SshdSettingsBuilder {
      *         implementation
      */
     protected String findHostKeyPath() {
-        final String defaultHostKeyPath = getRoot() + "/conf/" + getSystemName() + "/ssh_host_dsa_key";
+        final String defaultHostKeyPath = getConfDir() + "ssh_host_dsa_key";
 
         return getStringFromConfig("sshd.hostKeyPath", defaultHostKeyPath, "got host key");
     }
@@ -283,7 +285,7 @@ public class SshdSettingsBuilder {
      * 
      * @return root path to use
      */
-    String findRoot() {
+    static String findRoot() {
         String root = System.getenv("ROOT");
 
         if (null == root) {
@@ -291,6 +293,10 @@ public class SshdSettingsBuilder {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("default root set {} ", root);
             }
+        }
+
+        if (!root.endsWith("/")) {
+            root += File.separatorChar;
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -346,7 +352,7 @@ public class SshdSettingsBuilder {
     protected String findPropertiesPath() {
         String propertiesPath;
 
-        propertiesPath = getRoot() + "/conf/" + getSystemName() + "/sshd_proxy.properties";
+        propertiesPath = getConfDir() + "/sshd_proxy.properties";
 
         propertiesPath = System.getProperty("sshd.propertiesFile", propertiesPath);
 
@@ -376,6 +382,56 @@ public class SshdSettingsBuilder {
         return SYSTEM_NAME;
     }
 
+    /**
+     * Returns the System name to be used in constructing the paths, always prepended and appended by
+     * {@link File#separator}
+     * 
+     * @return "/" + SYSTEM_NAME + "/"
+     */
+    protected String getSystemNameDir() {
+        return SYSTEM_NAME_DIR;
+    }
+
+
+    /**
+     * Returns the path to the configuration directory always appended by {@link File#separator}
+     * 
+     * @return the path to the configuration directory
+     */
+    public String getConfDir() {
+        return getRoot() + "conf" + getSystemNameDir();
+    }
+
+    /**
+     * Returns the path to the logs directory always appended by {@link File#separator}
+     * 
+     * @return the path to the logs directory
+     */
+    public String getLogsDir() {
+        return getRoot() + "logs" + getSystemNameDir();
+    }
+
+
+    /**
+     * Returns the path to the auth directory always appended by {@link File#separator}
+     * 
+     * @return the path to the auth directory
+     */
+    public String getAuthDir() {
+        return getConfDir() + "auth" + File.separator;
+    }
+
+    /**
+     * Return the root directory. Typically /opt, or /usr/local, everything lives in a structure below here:
+     * 
+     * ROOT comes from the env, but really should come from the command line. It was set in the env for a really bizarre
+     * reason.
+     * 
+     * ROOT/conf/sshd_proxy/ ROOT/logs/sshd_proxy/
+     * 
+     * @return returns the root of where things live
+     */
+    @Deprecated
     public String getRoot() {
         if (null == rootPath) {
             rootPath = findRoot();
@@ -409,7 +465,7 @@ public class SshdSettingsBuilder {
     }
 
     protected String getWebappsDir() {
-        if ("" == webappsDir) {
+        if (null == webappsDir || webappsDir.isEmpty()) {
             webappsDir = findWebappDir();
         }
         return webappsDir;

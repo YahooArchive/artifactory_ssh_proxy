@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
 import com.yahoo.sshd.authentication.file.FileBasedPKAuthenticator;
+import com.yahoo.sshd.server.Sshd;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.shell.MessageShellFactory;
 import com.yahoo.sshd.server.shell.SshProxyMessage;
@@ -79,7 +80,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
     protected final ArtifactoryInformation artifactoryInfo;
 
     /**
-     * An array of external services that are running. TODO: clean shutdown when we exit.
+     * An array of external services that are running. {@link Sshd#start()} will iterate over these and start them.
+     * {@link Sshd#stop()} will iterate over these and stop them.
      */
     protected final RunnableComponent[] externalComponents;
 
