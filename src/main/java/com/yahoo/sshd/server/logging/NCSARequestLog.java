@@ -231,7 +231,7 @@ public class NCSARequestLog extends AbstractNCSARequestLog implements SshRequest
      * @see org.eclipse.jetty.util.component.AbstractLifeCycle#doStop()
      */
     @Override
-    public void cleanup() throws Exception {
+    public void close() throws IOException {
         if (LOG.isDebugEnabled()) {
             LOG.debug("cleaning up NCSARequestLog");
         }

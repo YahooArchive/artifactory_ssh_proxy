@@ -65,11 +65,13 @@ public class PEMHostKeyProvider extends AbstractKeyPairProvider {
         try (InputStream is = new FileInputStream(f)) {
             return doReadKeyPair(is);
         } catch (Exception e) {
-            log.info("Unable to read key {}: {}", path, e);
+            //log.info("Unable to read key {}: {}", path, e);
+            throw new RuntimeException(e);
         }
-        return null;
+        //return null;
     }
 
+    @Override
     public synchronized Iterable<KeyPair> loadKeys() {
         ArrayList<KeyPair> keyPairList = new ArrayList<KeyPair>();
 

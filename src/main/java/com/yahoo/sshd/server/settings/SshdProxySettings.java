@@ -87,6 +87,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
     protected final String artifactoryAuthorizationFilePath;
     protected final String requestLogFilePath;
+    
+    protected final boolean developmentMode;
 
     public SshdProxySettings(SshdSettingsBuilder b) throws SshdConfigurationException {
 
@@ -124,6 +126,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
                             + ", user: " + artifactoryUsername + " and password: " + artifactoryPassword
                             + "  must be specified");
         }
+        
+        this.developmentMode = b.getDevelopmentMode();
     }
 
     /**
@@ -310,7 +314,7 @@ public class SshdProxySettings implements SshdSettingsInterface {
                 c.init(Cipher.Mode.Encrypt, key, iv);
                 available.add(factory);
             } catch (Exception e) {
-                LOGGER.info("Failed to load cipher " + cipherName, e);
+                LOGGER.info("Failed to load cipher " + cipherName + " ensure you have the unlimited strength JCE installed", e);
             }
         }
 
@@ -345,5 +349,15 @@ public class SshdProxySettings implements SshdSettingsInterface {
     @Override
     public int getHttpPort() {
         return httpPort;
+    }
+
+    /**
+     * Added this to make doing dev work a lot less painful. I don't want to setup an auth.txt for doing local
+     * development, so add a flag. The problem is, we probably should flag this separately, because later we might
+     * create a developer version that hosts more bits. When that is done, we'll have to rethink this.
+     */
+    @Override
+    public boolean isDevelopementMode() {
+        return developmentMode;
     }
 }

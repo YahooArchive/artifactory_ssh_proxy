@@ -12,14 +12,24 @@
  */
 package com.yahoo.sshd.authorization.file;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.yahoo.sshd.authorization.ArtifactoryAuthorizer;
 import com.yahoo.sshd.authorization.ArtifactoryAuthorizerProviderFactory;
+import com.yahoo.sshd.authorization.WideOpenGatesAuthrorizer;
 import com.yahoo.sshd.server.settings.SshdSettingsInterface;
 
 public class DefaultArtifactoryAuthorizerProviderFactory implements ArtifactoryAuthorizerProviderFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(FileBasedArtifactoryAuthorizer.class);
 
     @Override
     public ArtifactoryAuthorizer artifactoryAuthorizerProvider(SshdSettingsInterface settings) {
+        if (settings.isDevelopementMode()) {
+            LOG.warn("Running in developement mode, many checks are disabled");
+            return new WideOpenGatesAuthrorizer(settings);
+        }
+
         return new FileBasedArtifactoryAuthorizer(settings);
     }
 

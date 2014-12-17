@@ -90,9 +90,11 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
 To run the proxy locally, do the following:
 
 1.  Create a config and an auth file.
-1.  Build the jar if you haven't already:  `mvn clean install`
-2.  Get your classpath:  `mvn dependency:build-classpath -Dmdep.outputFile=target/sshd_classpath`
-3.  Run the proxy:  ``java -cp target/sshd_proxy-0.2.0-SNAPSHOT.jar:`cat target/sshd_classpath` com.yahoo.sshd.server.Sshd -f src/main/resources/sshd_proxy.properties``
+    1. sh create_config.sh will create one for you.
+    1. -x below negates the need for an auth file.
+2.  Build the jar if you haven't already:  `mvn clean install`
+3.  Get your classpath:  `mvn dependency:build-classpath -Dmdep.outputFile=target/sshd_classpath`
+4.  Run the proxy:  ``java -cp target/sshd_proxy-0.2.0-SNAPSHOT.jar:`cat target/sshd_classpath` com.yahoo.sshd.server.Sshd -r developer_config -x``
 
 ## Misc notes.
 

@@ -19,6 +19,7 @@ import org.apache.sshd.common.Cipher;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.server.Command;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -38,73 +39,9 @@ public class TestArtifactoryAuthorization {
 
     @BeforeClass
     public void init() {
-        SshdSettingsInterface mockedSshdSettings = new SshdSettingsInterface() {
-            @Override
-            public int getPort() {
-                return 0;
-            }
-
-            @Override
-            public String getHostKeyPath() {
-                return null;
-            }
-
-            @Override
-            public DelegatingCommandFactory getCommandFactory() {
-                return null;
-            }
-
-            @Override
-            public List<DelegatingCommandFactory> getCfInstances() {
-                return null;
-            }
-
-            @Override
-            public MultiUserPKAuthenticator getPublickeyAuthenticator() throws IOException, InterruptedException {
-                return null;
-            }
-
-            @Override
-            public Factory<Command> getShellFactory() {
-                return null;
-            }
-
-            @Override
-            public ArtifactoryInformation getArtifactoryInfo() {
-                return null;
-            }
-
-            @Override
-            public int getNioWorkers() {
-                return 0;
-            }
-
-            @Override
-            public List<NamedFactory<Cipher>> getCiphers() {
-                return null;
-            }
-
-            @Override
-            public RunnableComponent[] getExternalComponents() {
-                return null;
-            }
-
-            @Override
-            public String getArtifactoryAuthorizationFilePath() {
-                return "src/test/resources/auth/auth.txt";
-            }
-
-            @Override
-            public String getRequestLogPath() {
-                return null;
-            }
-
-            @Override
-            public int getHttpPort() {
-                return 0;
-            }
-
-        };
+        SshdSettingsInterface mockedSshdSettings = Mockito.mock(SshdSettingsInterface.class);
+        Mockito.when(mockedSshdSettings.getArtifactoryAuthorizationFilePath()).thenReturn(
+                        "src/test/resources/auth/auth.txt");
         artifactoryAuthorization = new FileBasedArtifactoryAuthorizer(mockedSshdSettings);
     }
 

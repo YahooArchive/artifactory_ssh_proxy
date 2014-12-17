@@ -17,3 +17,5 @@ test-output
 
 dependency-reduced-pom.xml
 
+# config for running developers
+developer_config
