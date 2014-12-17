@@ -64,6 +64,8 @@ public class AuthorizedKeysFileScanner extends DirectoryWatchService {
                     final MultiUserAuthorizedKeysMap authorizedKeysMap, final File homeDirectoryBasePath,
                     final List<Path> excluded) throws IOException {
         super(wakeupLatch, homeDirectoryBasePath);
+
+        LOGGER.info("Loading keys from " + homeDirectoryBasePath);
         this.treeWalker =
                         new FileTreeWalker(watchService, watchKeys, homeDirectoryBasePath.toPath(), excluded,
                                         authorizedKeysMap);

@@ -21,6 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -169,7 +170,7 @@ public class TestPKUpdating {
     }
 
     private void checkExist(TestContext testContext, User[] users) {
-        Set<String> authenticatedUsers = testContext.publickeyAuthenticator.getUsers();
+        Collection<String> authenticatedUsers = testContext.publickeyAuthenticator.getUsers();
 
         for (User user : users) {
             Assert.assertTrue(authenticatedUsers.contains(user.name), "expected " + user + " to be authenticated");
@@ -177,7 +178,7 @@ public class TestPKUpdating {
     }
 
     private void checkDoesntExist(TestContext testContext, User[] users) {
-        Set<String> authenticatedUsers = testContext.publickeyAuthenticator.getUsers();
+        Collection<String> authenticatedUsers = testContext.publickeyAuthenticator.getUsers();
 
         for (User user : users) {
             Assert.assertFalse(authenticatedUsers.contains(user.name), "expected " + user + " not to be authenticated");
