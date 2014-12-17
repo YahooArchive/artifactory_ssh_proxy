@@ -208,18 +208,6 @@ public class SshdProxySettings implements SshdSettingsInterface {
         // Make sure we sleep until this is ready
         CountDownLatch countdownLatch = new CountDownLatch(1);
 
-        String authorizedUsers = System.getProperty("sshd.authorized_users", "");
-
-        String[] authorizedUsersArray = authorizedUsers.split(",");
-
-        Set<String> authorizedUsersSet;
-        if (null == authorizedUsersArray || authorizedUsersArray.length == 0) {
-            authorizedUsersSet = new HashSet<>();
-        } else {
-            authorizedUsersSet = new HashSet<>();
-            authorizedUsersSet.addAll(Arrays.asList(authorizedUsersArray));
-        }
-
         final MultiUserPKAuthenticator publickeyAuthenticator = getFileBasedAuth(countdownLatch);
         publickeyAuthenticator.start();
 
@@ -256,9 +244,15 @@ public class SshdProxySettings implements SshdSettingsInterface {
         return Runtime.getRuntime().availableProcessors() + 1;
     }
 
-    // Save this code for later use. this is for scanning for authorized keys.
-    // this is the non-sshd code.
-    private MultiUserPKAuthenticator getFileBasedAuth(final CountDownLatch countdownLatch) throws IOException {
+    /**
+     * Return the authenticator that should be used to get the keys
+     * 
+     * @param countdownLatch the latch to countdown when it's done.
+     * @return an instance of {@link MultiUserPKAuthenticator} that can be used for authenticating users based on the
+     *         public keys that have been loaded.
+     * @throws IOException
+     */
+    protected MultiUserPKAuthenticator getFileBasedAuth(final CountDownLatch countdownLatch) throws IOException {
         final File keyHome = new File(System.getProperty("home", "/home/"));
 
         return new FileBasedPKAuthenticator(countdownLatch, keyHome, Arrays.asList(new Path[] {new File(

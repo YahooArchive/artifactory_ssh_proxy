@@ -152,7 +152,7 @@ public class SshdSettingsBuilder {
     }
 
 
-    static String fixEmpty(String str) {
+    protected static String fixEmpty(String str) {
         if (null == str)
             return null;
 

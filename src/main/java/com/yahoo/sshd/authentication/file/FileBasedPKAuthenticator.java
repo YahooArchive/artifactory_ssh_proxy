@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.security.PublicKey;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.sshd.server.session.ServerSession;
@@ -30,6 +29,12 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
 import com.yahoo.sshd.utils.ThreadUtils;
 
+/**
+ * A public key authenticator that scans /home/<user>/.ssh/authorized_keys for public key files.
+ * 
+ * @author areese
+ * 
+ */
 public class FileBasedPKAuthenticator implements MultiUserPKAuthenticator {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileBasedPKAuthenticator.class);
     private final AuthorizedKeysFileScanner authorizedKeysFileScanner;

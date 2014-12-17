@@ -34,6 +34,13 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * an implementation of {@link FileTreeWalkerInterface} which looks for new public keys in
+ * /<path>/<user>/.ssh/authorized_keys
+ * 
+ * @author areese
+ * 
+ */
 public class FileTreeWalker implements FileTreeWalkerInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileTreeWalker.class);
 
