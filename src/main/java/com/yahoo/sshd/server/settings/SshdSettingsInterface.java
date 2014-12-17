@@ -68,4 +68,12 @@ public interface SshdSettingsInterface {
      * @return port http is listening on.
      */
     int getHttpPort();
+
+    /**
+     * Make a special flag for people running it on the desktop and debugging who really don't want to setup a lot of
+     * extra things that are required for production.
+     * 
+     * @return true if we are in development mode.
+     */
+    boolean isDevelopementMode();
 }

@@ -25,6 +25,13 @@ import com.yahoo.sshd.authorization.ArtifactoryPermTargetType;
 import com.yahoo.sshd.server.settings.SshdSettingsInterface;
 import com.yahoo.sshd.utils.ThreadUtils;
 
+/**
+ * This class watches the file specified by {@link SshdSettingsInterface#getArtifactoryAuthorizationFilePath()} and
+ * authorizes users based upon it's content.
+ * 
+ * @author areese
+ * 
+ */
 public class FileBasedArtifactoryAuthorizer implements ArtifactoryAuthorizer {
     private static final Logger LOG = LoggerFactory.getLogger(FileBasedArtifactoryAuthorizer.class);
 

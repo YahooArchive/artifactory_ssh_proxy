@@ -24,6 +24,12 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.authorization.ArtifactoryPermTargetType;
 
+/**
+ * This class parses an auth.txt and builds a permissions map of repo -> {@link PermTarget}.
+ * 
+ * @author areese
+ * 
+ */
 public class AuthFileParser {
     private static final Logger LOG = LoggerFactory.getLogger(AuthFileParser.class);
 

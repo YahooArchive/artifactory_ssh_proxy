@@ -12,13 +12,13 @@
  */
 package com.yahoo.sshd.server.logging;
 
+import java.io.Closeable;
 
-public interface SshRequestLog {
+
+public interface SshRequestLog extends Closeable {
 
     public void log(SshRequestInfo request);
 
     public void setup() throws Exception;
-
-    public void cleanup() throws Exception;
 
 }

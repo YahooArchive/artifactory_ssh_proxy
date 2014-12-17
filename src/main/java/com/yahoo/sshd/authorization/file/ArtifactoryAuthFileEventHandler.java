@@ -20,8 +20,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.sshd.utils.DirectoryWatchService;
 import com.yahoo.sshd.utils.DirectoryWatchServiceEventHandler;
 
+/**
+ * This class is used by {@link ArtifactoryAuthorizerFileScanner} to deal with events fired by the
+ * {@link DirectoryWatchService} implemented by {@link ArtifactoryAuthorizerFileScanner}
+ * 
+ * It hands parsing off to {@link AuthFileParser} which currently isn't replacable.
+ * 
+ * @author areese
+ * 
+ */
 public class ArtifactoryAuthFileEventHandler implements DirectoryWatchServiceEventHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactoryAuthFileEventHandler.class);
 
@@ -63,6 +73,8 @@ public class ArtifactoryAuthFileEventHandler implements DirectoryWatchServiceEve
     }
 
     private void reload(Path changed) throws FileNotFoundException {
+        // TODO: allow this to be overriden
+        // TODO: fix this to not be static, so behaviour can change
         AuthFileParser.parse(changed.toFile().getAbsolutePath(), authorizationHashMap);
     }
 }

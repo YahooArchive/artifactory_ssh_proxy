@@ -114,13 +114,24 @@ public class TestOptions {
         Assert.assertEquals(fileConfiguration.getFileName(), expectedPath);
     }
 
-    @Test
-    public void testRoot() {
+    @DataProvider
+    public Object[][] roots() {
+        return new Object[][] { //
+        //
+                        {null, "src/test/resources/",}, //
+                        {"", "src/test/resources/",}, //
+                        {"    ", "src/test/resources/",}, //
+                        {" foo_root ", "foo_root/",},//
+        };
+    }
+
+    @Test(dataProvider = "roots")
+    public void testRoot(String input, String expected) {
         // we can assume ROOT is set in the env.
         // later we can play games and configure surefire to test different roots.
         // TODO: remove check for ROOT from env.
         SshdSettingsBuilder sb = new SshdSettingsBuilder();
-        Assert.assertEquals(sb.findRoot(), "src/test/resources/");
+        Assert.assertEquals(sb.findRoot(input), expected);
     }
 
     @Test

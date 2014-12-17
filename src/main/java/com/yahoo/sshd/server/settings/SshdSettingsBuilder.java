@@ -93,6 +93,10 @@ public class SshdSettingsBuilder {
     private String artifactoryAuthorizationFilePath;
     private String requestLogPath;
 
+    private Boolean developerMode;
+
+    protected String overriddenRoot;
+
     static final List<String> DEFAULT_COMMAND_FACTORIES = new ArrayList<>(Arrays.asList(new String[] {//
                     DefaultScpCommandFactory.class.getCanonicalName(), //
                     }));
@@ -111,10 +115,15 @@ public class SshdSettingsBuilder {
             try {
                 Options options = new Options();
                 options.addOption("f", "config", true, "Path to properties file");
+                options.addOption("r", "root", true, "root path under which things are stored");
+                options.addOption("x", "xdeveloper", false, "Enable developer mode, disabling auth access control");
 
                 // parse the command line arguments
                 CommandLine line = parser.parse(options, args);
                 overriddenPath = line.getOptionValue('f');
+                overriddenRoot = fixEmpty(line.getOptionValue('r'));
+                developerMode = Boolean.valueOf(line.hasOption('x'));
+
             } catch (ParseException e) {
                 throw new SshdConfigurationException(e);
             }
@@ -127,7 +136,7 @@ public class SshdSettingsBuilder {
         }
 
         commandFactoryStrings = findCommandFactoryStrings();
-        rootPath = findRoot();
+        rootPath = findRoot(overriddenRoot);
         hostKeyPath = findHostKeyPath();
         sshdPort = findSshdPort();
         artifactoryUrl = findArtifactoryUrl();
@@ -140,6 +149,19 @@ public class SshdSettingsBuilder {
 
         // do this last, so it can rely on everything before/
         externalComponents = createExternalComponents();
+    }
+
+
+    static String fixEmpty(String str) {
+        if (null == str)
+            return null;
+
+        str = str.trim();
+        if (str.isEmpty()) {
+            return null;
+        }
+
+        return str;
     }
 
     /**
@@ -285,8 +307,14 @@ public class SshdSettingsBuilder {
      * 
      * @return root path to use
      */
-    protected String findRoot() {
+    protected String findRoot(String overriddenRoot) {
         String root = System.getenv("ROOT");
+
+        // if passed, forget the env, the commandline wins.
+        overriddenRoot = fixEmpty(overriddenRoot);
+        if (null != overriddenRoot) {
+            root = overriddenRoot;
+        }
 
         if (null == root) {
             root = DEFAULT_ROOT;
@@ -434,7 +462,7 @@ public class SshdSettingsBuilder {
     @Deprecated
     public String getRoot() {
         if (null == rootPath) {
-            rootPath = findRoot();
+            rootPath = findRoot(overriddenRoot);
         }
 
         return rootPath;
@@ -650,5 +678,9 @@ public class SshdSettingsBuilder {
         }
 
         return intValue;
+    }
+
+    public boolean getDevelopmentMode() {
+        return (null == developerMode) ? false : developerMode.booleanValue();
     }
 }
