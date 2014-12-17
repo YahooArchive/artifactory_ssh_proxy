@@ -14,6 +14,7 @@ package com.yahoo.sshd.authentication;
 
 import java.io.IOException;
 import java.security.PublicKey;
+import java.util.Collection;
 
 import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
@@ -43,8 +44,10 @@ public interface MultiUserPKAuthenticator extends PublickeyAuthenticator {
     @Override
     boolean authenticate(String username, PublicKey publicKey, ServerSession session);
 
+    int getNumberOfKeysLoads();
+
     /**
      * List all of the users this map contains
      */
-    // Collection<String> getUsers();
+    Collection<String> getUsers();
 }

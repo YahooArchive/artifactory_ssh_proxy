@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.PublicKey;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -75,8 +76,14 @@ public class FileBasedPKAuthenticator implements MultiUserPKAuthenticator {
         return authorizedKeysMap.authenticate(username, publicKey, session);
     }
 
-    Set<String> getUsers() {
+    @Override
+    public Collection<String> getUsers() {
         return authorizedKeysMap.getUsers();
+    }
+
+    @Override
+    public int getNumberOfKeysLoads() {
+        return authorizedKeysMap.getUsers().size();
     }
 
 }
