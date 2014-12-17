@@ -87,7 +87,7 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
     protected final String artifactoryAuthorizationFilePath;
     protected final String requestLogFilePath;
-    
+
     protected final boolean developmentMode;
 
     public SshdProxySettings(SshdSettingsBuilder b) throws SshdConfigurationException {
@@ -126,7 +126,7 @@ public class SshdProxySettings implements SshdSettingsInterface {
                             + ", user: " + artifactoryUsername + " and password: " + artifactoryPassword
                             + "  must be specified");
         }
-        
+
         this.developmentMode = b.getDevelopmentMode();
     }
 
@@ -225,7 +225,12 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
         LOGGER.info("Waiting for public keys  to be loaded");
         countdownLatch.await();
-        LOGGER.info("Done waiting for public keys  to be loaded");
+        int loadedKeys = publickeyAuthenticator.getNumberOfKeysLoads();
+        LOGGER.info("Loaded {} public keys", Integer.valueOf(loadedKeys));
+
+        if (loadedKeys < 1) {
+            throw new IOException("Didn't load any public keys, nothing will work");
+        }
 
         return publickeyAuthenticator;
     }
@@ -314,7 +319,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
                 c.init(Cipher.Mode.Encrypt, key, iv);
                 available.add(factory);
             } catch (Exception e) {
-                LOGGER.info("Failed to load cipher " + cipherName + " ensure you have the unlimited strength JCE installed");
+                LOGGER.info("Failed to load cipher " + cipherName
+                                + " ensure you have the unlimited strength JCE installed");
             }
         }
 
