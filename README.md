@@ -87,6 +87,12 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
 
 ## Run
 
+First ensure you have the jce installed:
+
+1.  Build the jar if you haven't already:  `mvn clean install`
+2.  Get your classpath:  `mvn dependency:build-classpath -Dmdep.outputFile=target/sshd_classpath`
+3.  ``java -cp target/sshd_proxy-0.2.0-SNAPSHOT.jar:`cat target/sshd_classpath` com.yahoo.sshd.server.TestCiphers 2>&1  | grep length``  this should output 7.
+
 To run the proxy locally, do the following:
 
 1.  Create a config and an auth file.
