@@ -264,7 +264,7 @@ public class SshdProxySettings implements SshdSettingsInterface {
      * create a list of factories from a list of cipher names
      */
     @SuppressWarnings("unchecked")
-    protected List<NamedFactory<Cipher>> createCipherFactoryList(List<String> cipherNames) {
+    public static List<NamedFactory<Cipher>> createCipherFactoryList(List<String> cipherNames) {
 
         final NamedFactory<Cipher>[] cipherArray = new NamedFactory[] { //
                         //
@@ -314,7 +314,7 @@ public class SshdProxySettings implements SshdSettingsInterface {
                 c.init(Cipher.Mode.Encrypt, key, iv);
                 available.add(factory);
             } catch (Exception e) {
-                LOGGER.info("Failed to load cipher " + cipherName + " ensure you have the unlimited strength JCE installed", e);
+                LOGGER.info("Failed to load cipher " + cipherName + " ensure you have the unlimited strength JCE installed");
             }
         }
 
