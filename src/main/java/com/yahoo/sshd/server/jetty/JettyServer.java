@@ -12,18 +12,24 @@
  */
 package com.yahoo.sshd.server.jetty;
 
+import java.io.File;
+import java.lang.management.ManagementFactory;
+
+import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.thread.ScheduledExecutorScheduler;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JettyServer {
     final static Logger LOG = LoggerFactory.getLogger(JettyServer.class);
 
+
+    // FIXME: need to pick between loading artifactory and serving resources
     @SuppressWarnings({"resource", "boxing"})
     public static Server newServer(int jettyPort, String jettyWebAppDir) throws Exception {
 
@@ -38,10 +44,26 @@ public class JettyServer {
         server.setDumpBeforeStop(false);
         server.setStopAtShutdown(true);
 
-        ResourceHandler resourceHandler = new ResourceHandler();
-        resourceHandler.setDirectoriesListed(false);
-        resourceHandler.setResourceBase(jettyWebAppDir);
-        server.setHandler(resourceHandler);
+
+        // http://www.eclipse.org/jetty/documentation/current/embedding-jetty.html#d0e19050
+        // Setup JMX
+        MBeanContainer mbContainer = new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
+        server.addBean(mbContainer);
+        // The WebAppContext is the entity that controls the environment in
+        // which a web application lives and breathes. In this example the
+        // context path is being set to "/" so it is suitable for serving root
+        // context requests and then we see it setting the location of the war.
+        // A whole host of other configurations are available, ranging from
+        // configuring to support annotation scanning in the webapp (through
+        // PlusConfiguration) to choosing where the webapp will unpack itself.
+        WebAppContext webapp = new WebAppContext();
+        File warFile = new File(jettyWebAppDir + File.separator + "artifactory.war");
+        webapp.setContextPath("/artifactory");
+        webapp.setWar(warFile.getAbsolutePath());
+
+        // A WebAppContext is a ContextHandler as well so it needs to be set to
+        // the server so it is aware of where to send the appropriate requests.
+        server.setHandler(webapp);
 
         // http configuration
         HttpConfiguration http_config = new HttpConfiguration();

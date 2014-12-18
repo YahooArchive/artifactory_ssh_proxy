@@ -266,21 +266,7 @@
                                 <requireMavenVersion>
                                     <version>[${min_maven_version},)</version>
                                 </requireMavenVersion>
-                                <!-- enforcement disabled because of:
-                                        and
-                                        +-com.yahoo.sshd:sshd_proxy:0.2.0-SNAPSHOT
-                                          +-org.jfrog.artifactory.client:artifactory-java-client-ning-services:0.14
-                                            +-org.jfrog.artifactory.client:artifactory-java-client-services:0.14
-                                              +-org.codehaus.groovy:groovy-xml:2.3.2
-                                                +-org.codehaus.groovy:groovy:2.3.2
-                                        and
-                                        +-com.yahoo.sshd:sshd_proxy:0.2.0-SNAPSHOT
-                                          +-org.jfrog.artifactory.client:artifactory-java-client-ning-services:0.14
-                                            +-org.jfrog.artifactory.client:artifactory-java-client-services:0.14
-                                              +-org.codehaus.groovy.modules.http-builder:http-builder:0.6
-                                                +-org.codehaus.groovy:groovy:1.8.8
-                                 -->
-                                 <!-- <DependencyConvergence />  -->
+                                <DependencyConvergence />
                             </rules>
                         </configuration>
                     </execution>
@@ -367,6 +353,12 @@
                 <artifactId>javassist</artifactId>
                 <version>3.11.0.GA</version>
             </dependency>
+            <!--  fixed by https://github.com/JFrogDev/artifactory-client-java/pull/51/ -->
+            <dependency>
+                <artifactId>http-builder</artifactId>
+                <groupId>org.codehaus.groovy.modules.http-builder</groupId>
+                <version>0.7.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -394,7 +386,7 @@
         <dependency>
             <groupId>org.jfrog.artifactory.client</groupId>
             <artifactId>artifactory-java-client-ning-services</artifactId>
-            <version>0.14</version>
+            <version>0.17</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -528,6 +520,16 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-jmx</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-webapp</artifactId>
             <version>${jetty.version}</version>
         </dependency>
         <dependency>
