@@ -105,7 +105,19 @@ To run the proxy locally, do the following:
 3.  Get your classpath:  `mvn dependency:build-classpath -Dmdep.outputFile=target/sshd_classpath`
 4.  Run the proxy:  ``java -cp target/sshd_proxy-0.2.0-SNAPSHOT.jar:`cat target/sshd_classpath` com.yahoo.sshd.server.Sshd -r developer_config -x``
     `-x` disables the auth.txt configuration.
-    Currently it wants to scan /home for authorized_keys, this is broken on a mac.
+    Adding -x causes it to user `user.home`/.ssh/authorized_keys, so if you are authorized to localhost this will work
+
+In another terminal `ssh -p 2222 localhost`
+you should see:
+
+    [areese@dinnercare ~]$ ssh -p 2222 localhost
+    X11 forwarding request failed on channel 0
+    *---------------------------------------------------*
+    |               _  _ _  _|    _-|-. _  _            |
+    |    this is a |_)| (_)(_||_|(_ | |(_)| | server    |
+    |              |                                    |
+    *---------------------------------------------------*
+    Connection to dinnercare closed.
 
 ## Misc notes.
 
