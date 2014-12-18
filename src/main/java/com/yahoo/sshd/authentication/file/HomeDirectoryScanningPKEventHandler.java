@@ -118,10 +118,7 @@ public class HomeDirectoryScanningPKEventHandler implements DirectoryWatchServic
         // for now we'll do it inline. this exists just to allow that later.
         // also final as a hint to the compiler to eliminate this method.
         try {
-            if (null != authorizedKeysMap) {
-                authorizedKeysMap.updateUser(username,
-                                AuthorizedKeysFileScanner.getStream(username, authorizedKeysFile));
-            }
+            authorizedKeysMap.updateUser(username, AuthorizedKeysFileScanner.getStream(username, authorizedKeysFile));
         } catch (FileNotFoundException e) {
             LOGGER.error("Unable to load authorized_keys for " + username, e);
         }

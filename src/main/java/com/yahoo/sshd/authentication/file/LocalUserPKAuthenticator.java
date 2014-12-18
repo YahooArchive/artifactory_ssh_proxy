@@ -15,11 +15,8 @@ package com.yahoo.sshd.authentication.file;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
 import java.security.PublicKey;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.sshd.server.session.ServerSession;
@@ -27,19 +24,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
-import com.yahoo.sshd.utils.ThreadUtils;
 
-/**
- * A public key authenticator that scans /home/<user>/.ssh/authorized_keys for public key files.
- * 
- * @author areese
- * 
- */
-public class HomeDirectoryScanningPKAuthenticator implements MultiUserPKAuthenticator {
+public class LocalUserPKAuthenticator implements MultiUserPKAuthenticator {
     private static final Logger LOGGER = LoggerFactory.getLogger(HomeDirectoryScanningPKAuthenticator.class);
-    private final AuthorizedKeysFileScanner authorizedKeysFileScanner;
 
     private final MultiUserAuthorizedKeysMap authorizedKeysMap;
+
+    /**
+     * Latch that countdown is called on when start is done registering everything.
+     */
+    protected final CountDownLatch wakeupLatch;
+
+    private final String userHome;
+    private final String userName;
 
     /**
      * 
@@ -49,38 +46,46 @@ public class HomeDirectoryScanningPKAuthenticator implements MultiUserPKAuthenti
      *        directories in /home that are not home directories and are rather large.
      * @throws IOException
      */
-    public HomeDirectoryScanningPKAuthenticator(final CountDownLatch wakeupLatch, final File homeDirectoryBasePath,
-                    final List<Path> excludedPaths) throws IOException {
+    public LocalUserPKAuthenticator(final CountDownLatch wakeupLatch) throws IOException {
         // Setup the scanner that keeps the pk's up to date.
         this.authorizedKeysMap = new MultiUserAuthorizedKeysMap();
-        this.authorizedKeysFileScanner =
-                        new AuthorizedKeysFileScanner(wakeupLatch, authorizedKeysMap, homeDirectoryBasePath,
-                                        excludedPaths);
-    }
-
-    /**
-     * Starts the {@link AuthorizedKeysFileScanner} thread.
-     * 
-     * @throws IOException
-     */
-    @Override
-    public void start() throws IOException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Starting akfs thread.");
+        String home = System.getProperty("user.home");
+        if (null == home) {
+            throw new IOException("Unable to get home directory from user.home system property");
         }
 
-        ThreadUtils.cachedThreadPool().execute(authorizedKeysFileScanner);
+        String username = System.getProperty("user.name");
+        if (null == username) {
+            throw new IOException("Unable to get username from user.name system property");
+        }
+
+        this.userHome = home;
+        this.userName = username;
+        this.wakeupLatch = wakeupLatch;
     }
 
-    /**
-     * given a user name and a file, update their authorized keys. Only used by one of the tests.
-     * 
-     * @param username
-     * @param authorizedKeysFile
-     * @throws FileNotFoundException
-     */
-    public void updateUser(final String username, final InputStream authorizedKeysFile) throws FileNotFoundException {
-        authorizedKeysMap.updateUser(username, authorizedKeysFile);
+    @Override
+    public void start() throws IOException {
+        try {
+            File authorizedKeysFile = getAuthorizedKeysPath();
+            authorizedKeysMap.updateUser(getUserName(),
+                            AuthorizedKeysFileScanner.getStream(getUserName(), authorizedKeysFile));
+        } catch (FileNotFoundException e) {
+            LOGGER.error("Unable to load authorized_keys for " + userName, e);
+        }
+        wakeupLatch.countDown();
+    }
+
+    String getUserName() {
+        return userName;
+    }
+
+    File getAuthorizedKeysPath() {
+        return new File(getUserHome() + File.separator + ".ssh" + File.separator + "authorized_keys");
+    }
+
+    String getUserHome() {
+        return userHome;
     }
 
     @Override

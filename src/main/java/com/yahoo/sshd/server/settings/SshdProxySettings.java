@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
 import com.yahoo.sshd.authentication.file.HomeDirectoryScanningPKAuthenticator;
+import com.yahoo.sshd.authentication.file.LocalUserPKAuthenticator;
 import com.yahoo.sshd.server.Sshd;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.shell.MessageShellFactory;
@@ -203,19 +204,22 @@ public class SshdProxySettings implements SshdSettingsInterface {
     @Override
     public MultiUserPKAuthenticator getPublickeyAuthenticator() throws IOException, InterruptedException {
 
-        // Make sure we sleep until this is ready
-        CountDownLatch countdownLatch = new CountDownLatch(1);
+        /**
+         * countdown is called on this latch when {@link MultiUserPKAuthenticator#start} is done.
+         */
+        CountDownLatch wakeupLatch = new CountDownLatch(1);
 
-        final MultiUserPKAuthenticator publickeyAuthenticator = getFileBasedAuth(countdownLatch);
+        final MultiUserPKAuthenticator publickeyAuthenticator = getFileBasedAuth(wakeupLatch);
         publickeyAuthenticator.start();
 
         LOGGER.info("Waiting for public keys  to be loaded");
-        countdownLatch.await();
+        wakeupLatch.await();
+
         int loadedKeys = publickeyAuthenticator.getNumberOfKeysLoads();
         LOGGER.info("Loaded {} public keys", Integer.valueOf(loadedKeys));
 
         if (loadedKeys < 1) {
-            throw new IOException("Didn't load any public keys, nothing will work");
+            throw new IOException("Didn't load any public keys, auth will not work, exiting");
         }
 
         return publickeyAuthenticator;
@@ -245,16 +249,25 @@ public class SshdProxySettings implements SshdSettingsInterface {
     /**
      * Return the authenticator that should be used to get the keys
      * 
-     * @param countdownLatch the latch to countdown when it's done.
+     * @param wakeupLatch Latch that countdown is called on when start is done registering everything.
      * @return an instance of {@link MultiUserPKAuthenticator} that can be used for authenticating users based on the
      *         public keys that have been loaded.
      * @throws IOException
      */
-    protected MultiUserPKAuthenticator getFileBasedAuth(final CountDownLatch countdownLatch) throws IOException {
-        final File keyHome = new File(System.getProperty("home", "/home/"));
+    protected MultiUserPKAuthenticator getFileBasedAuth(final CountDownLatch wakeupLatch) throws IOException {
 
-        return new HomeDirectoryScanningPKAuthenticator(countdownLatch, keyHome, Arrays.asList(new Path[] {new File(
-                        "/usr/local/sshproxy/").toPath()}));
+        if (!isDevelopementMode()) {
+            // Allow people to override the location of "home"
+            final File keyHome = new File(System.getProperty("sshd_proxy.home", "/home/"));
+
+            // by default we don't have anything to exclude from /home
+            return new HomeDirectoryScanningPKAuthenticator(wakeupLatch, keyHome, Arrays.asList(new Path[] {}));
+        } else {
+            // in development mode, look up the home directory of the current user and use that authorized_keys.
+            // the theory is, if you gave it -x, you are probably trying to play with it, and a single ssh user
+            // and no repo whitelisting are very useful.
+            return new LocalUserPKAuthenticator(wakeupLatch);
+        }
     }
 
     /**

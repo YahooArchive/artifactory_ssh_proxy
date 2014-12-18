@@ -49,6 +49,13 @@ public class ArtifactoryAuthorizerFileScanner extends DirectoryWatchService {
     private final Map<WatchKey, Path> watchKeys = new HashMap<WatchKey, Path>();
     private final FileTreeWalkerInterface treeWalker;
 
+    /**
+     * 
+     * @param wakeupLatch Latch that countdown is called on when start is done registering everything.
+     * @param watchedDirectory
+     * @param authorizationHashMap
+     * @throws IOException
+     */
     public ArtifactoryAuthorizerFileScanner(final CountDownLatch wakeupLatch, final File watchedDirectory,
                     final ConcurrentHashMap<String, PermTarget> authorizationHashMap) throws IOException {
         super(wakeupLatch, watchedDirectory.getParentFile());
