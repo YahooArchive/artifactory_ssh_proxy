@@ -408,12 +408,12 @@
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-core</artifactId>
-            <version>0.11.0</version>
+            <version>0.13.0</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.49</version>
+            <version>1.51</version>
         </dependency>
         <dependency>
             <groupId>com.trilead</groupId>
