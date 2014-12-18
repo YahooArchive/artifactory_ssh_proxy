@@ -40,7 +40,7 @@ import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
 
 @Test(groups = "unit")
 public class TestPKAuth {
-    FileBasedPKAuthenticator mupka;
+    HomeDirectoryScanningPKAuthenticator mupka;
     String[] pkFiles;
     String base = "src/test/resources/keys";
     DirectoryScanner ds = new DirectoryScanner(base, "**.pub");
@@ -48,7 +48,7 @@ public class TestPKAuth {
     List<Path> excludedPaths = Arrays.asList(new Path[] {new File("/home/excluded").toPath()});
 
     public TestPKAuth() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-        mupka = new FileBasedPKAuthenticator(new CountDownLatch(0), new File(base), excludedPaths);
+        mupka = new HomeDirectoryScanningPKAuthenticator(new CountDownLatch(0), new File(base), excludedPaths);
 
         pkFiles = ds.scan();
 
@@ -114,9 +114,7 @@ public class TestPKAuth {
     public void testAllKeys(MultiUserPKAuthenticator mupka, PublicKey publicKey, String user, String fileName)
                     throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 
-        // now for all of these public keys ensure that "test", auths against
-        // them
-
+        // now for all of these public keys ensure that "test", auths against them
         ServerSession session = Mockito.mock(ServerSession.class);
         IoSession ioSession = Mockito.mock(IoSession.class);
         Mockito.when(session.getIoSession()).thenReturn(ioSession);
@@ -129,9 +127,7 @@ public class TestPKAuth {
     public void testBadKeys(MultiUserPKAuthenticator mupka, PublicKey publicKey, String user, String fileName)
                     throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 
-        // now for all of these public keys ensure that "test", auths against
-        // them
-
+        // now for all of these public keys ensure that "test", can auth against them
         ServerSession session = Mockito.mock(ServerSession.class);
         IoSession ioSession = Mockito.mock(IoSession.class);
         Mockito.when(session.getIoSession()).thenReturn(ioSession);

@@ -33,7 +33,7 @@ import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sshd.authentication.file.FileTreeWalker.FileVisitor;
+import com.yahoo.sshd.authentication.file.HomeDirectoryTreeWalker.FileVisitor;
 
 @Test(groups = "unit")
 public class TestFileTreeWalker {
@@ -52,8 +52,8 @@ public class TestFileTreeWalker {
         Map<WatchKey, Path> watchKeys = new HashMap<>();
         List<Path> excludedPaths = Collections.emptyList();
 
-        FileTreeWalker ftw =
-                        new FileTreeWalker(FileSystems.getDefault().newWatchService(), watchKeys,
+        HomeDirectoryTreeWalker ftw =
+                        new HomeDirectoryTreeWalker(FileSystems.getDefault().newWatchService(), watchKeys,
                                         new File(homeDir).toPath(), excludedPaths, authorizedKeysMap);
 
         ftw.registerAll(basePath);
@@ -86,8 +86,8 @@ public class TestFileTreeWalker {
             expected.add(new File(s).getAbsolutePath());
         }
 
-        FileTreeWalker ftw =
-                        new FileTreeWalker(FileSystems.getDefault().newWatchService(), watchKeys,
+        HomeDirectoryTreeWalker ftw =
+                        new HomeDirectoryTreeWalker(FileSystems.getDefault().newWatchService(), watchKeys,
                                         new File(base).toPath(), excludedPaths, authorizedKeysMap);
 
         File _home_areeseFile = new File(base, "areese");
@@ -118,8 +118,8 @@ public class TestFileTreeWalker {
         Map<WatchKey, Path> watchKeys = new HashMap<>();
         List<Path> excludedPaths = Collections.emptyList();
 
-        FileTreeWalker ftw =
-                        new FileTreeWalker(FileSystems.getDefault().newWatchService(), watchKeys,
+        HomeDirectoryTreeWalker ftw =
+                        new HomeDirectoryTreeWalker(FileSystems.getDefault().newWatchService(), watchKeys,
                                         new File(homeDir).toPath(), excludedPaths, authorizedKeysMap);
 
         FileVisitor fv = ftw.new FileVisitor();
@@ -145,7 +145,7 @@ public class TestFileTreeWalker {
         String homey = "src/test/resources/home/yodel";
         Path homeyPath = new File(homey).toPath().toAbsolutePath();
 
-        FileTreeWalker ftw = Mockito.mock(FileTreeWalker.class);
+        HomeDirectoryTreeWalker ftw = Mockito.mock(HomeDirectoryTreeWalker.class);
         Mockito.when(ftw.getExcludedPaths()).thenReturn(Arrays.asList(new Path[] {homeyPath}));
 
         Mockito.when(ftw.getHomeDirectoryBasePath()).thenReturn(basePath);

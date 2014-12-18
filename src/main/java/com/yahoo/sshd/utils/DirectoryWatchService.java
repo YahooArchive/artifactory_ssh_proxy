@@ -79,7 +79,7 @@ public abstract class DirectoryWatchService implements AutoCloseable, Runnable {
 
     /**
      * 
-     * @return
+     * @return an instance of {@link FileTreeWalkerInterface} that is used to process events.
      */
     protected abstract FileTreeWalkerInterface getFileTreeWalker();
 
@@ -100,6 +100,7 @@ public abstract class DirectoryWatchService implements AutoCloseable, Runnable {
                 LOGGER.debug("Scanning {} ...\n", this.watchedDirectory);
             }
 
+            // register for events on all children of the parent directory.
             getFileTreeWalker().registerAll(this.watchedDirectory);
 
             if (LOGGER.isDebugEnabled()) {
@@ -184,6 +185,7 @@ public abstract class DirectoryWatchService implements AutoCloseable, Runnable {
                 if (kind == ENTRY_CREATE) {
 
                     try {
+                        // if it's a directory, follow it's children but don't follow links.
                         // not sure we care about this.
                         if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
                             getFileTreeWalker().registerAll(child);

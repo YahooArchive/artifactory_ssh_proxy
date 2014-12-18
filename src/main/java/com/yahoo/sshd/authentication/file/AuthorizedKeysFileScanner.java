@@ -67,19 +67,19 @@ public class AuthorizedKeysFileScanner extends DirectoryWatchService {
 
         LOGGER.info("Loading keys from " + homeDirectoryBasePath);
         this.treeWalker =
-                        new FileTreeWalker(watchService, watchKeys, homeDirectoryBasePath.toPath(), excluded,
+                        new HomeDirectoryTreeWalker(watchService, watchKeys, homeDirectoryBasePath.toPath(), excluded,
                                         authorizedKeysMap);
         this.fileEventHandler =
-                        new FileBasedPKAuthenticatorEventHandler(watchedDirectory, authorizedKeysMap, this.treeWalker);
+                        new HomeDirectoryScanningPKEventHandler(watchedDirectory, authorizedKeysMap, this.treeWalker);
     }
 
     AuthorizedKeysFileScanner(final CountDownLatch wakeupLatch, final MultiUserAuthorizedKeysMap authorizedKeysMap,
-                    final File homeDirectoryBasePath, final List<Path> excluded, FileTreeWalker treeWalker)
+                    final File homeDirectoryBasePath, final List<Path> excluded, HomeDirectoryTreeWalker treeWalker)
                     throws IOException {
         super(wakeupLatch, homeDirectoryBasePath);
         this.treeWalker = treeWalker;
         this.fileEventHandler =
-                        new FileBasedPKAuthenticatorEventHandler(watchedDirectory, authorizedKeysMap, this.treeWalker);
+                        new HomeDirectoryScanningPKEventHandler(watchedDirectory, authorizedKeysMap, this.treeWalker);
     }
 
     @Override

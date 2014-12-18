@@ -30,8 +30,10 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
 
 - Currently the proxy will only run on a linux machine.  Sorry windows.
 - Java 1.7 installed and configured.
+   - JCE crypto from: `http://www.oracle.com/technetwork/java/embedded/embedded-se/downloads/jce-7-download-432124.html` or `http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html`
 - An artifactory server for which you have created an account (username & password) for the proxy to use.
 - Anyone who wants to use the proxy will need to be capable of ssh'ing into the proxy server.
+   - FIXME: should be able to seperate this out.
 
 - It's highly advisable to look at apache commons daemon to run this while dropping privileges.
 - For unix operating systems, jsvc: http://commons.apache.org/proper/commons-daemon/jsvc.html 
@@ -41,7 +43,7 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
 
 ### Setup
 
-1. Be sure to have Java 1.7 and Maven 3 installed.
+1. Be sure to have Java 1.7 or later, and and Maven 3 installed.
 2. On your Artifactory instance/server, create a user for the proxy.  You will use this user name and password in a properties file (next step).
 3. Create a properties file, `sshd_proxy.properties`, and put it in: `/opt/sshd_proxy/conf/sshd_proxy/`.
 4. In the `sshd_proxy.properties`, write the following 4 lines, replace the examples here with your actual values:
@@ -55,7 +57,7 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
     ```
 
 5. The proxy authentication works by checking against an `auth.txt` file to determine the permissions of each user who wants to use artifactory.  This file has to be created at:  `/opt/sshd_proxy/conf/sshd_proxy/auth/auth.txt`.
-6. In `auth.txt`, format the file like this example, replacing the repo names with actual repos, and the user names with actual users who are on the proxy machine:
+6. In `auth.txt`, format the file like this example, replacing the repo names with actual repos, and the user names with actual     users who are on the proxy machine:
 
     ```
     # add repository names and users
@@ -71,6 +73,7 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
     ```
 
 7. The proxy server is designed to be used in large scale deployments with many proxy servers under a load balancer.  In this production situation, the hostkey needs to match amongst all the individual proxy servers.  For now, lets assume a single machine instance and symlink the hostkey where `sshd_proxy` looks.  _Prior to doing this step_, you will want to create an ssh key (DSA) for the user account that runs the proxy jar.
+    A host key can be created by running `ssh-keygen -t dsa -f $ROOT/conf/sshd_proxy/ssh_host_dsa_key -C '' -N ''`
 
     `$ sudo ln -s ~/.ssh/ssh_host_dsa_key /opt/sshd_proxy/conf/sshd_proxy/ssh_host_dsa_key`
 
@@ -87,7 +90,7 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
 
 ## Run
 
-First ensure you have the jce installed:
+First ensure you have the jce installed correctly:
 
 1.  Build the jar if you haven't already:  `mvn clean install`
 2.  Get your classpath:  `mvn dependency:build-classpath -Dmdep.outputFile=target/sshd_classpath`
@@ -101,6 +104,8 @@ To run the proxy locally, do the following:
 2.  Build the jar if you haven't already:  `mvn clean install`
 3.  Get your classpath:  `mvn dependency:build-classpath -Dmdep.outputFile=target/sshd_classpath`
 4.  Run the proxy:  ``java -cp target/sshd_proxy-0.2.0-SNAPSHOT.jar:`cat target/sshd_classpath` com.yahoo.sshd.server.Sshd -r developer_config -x``
+    `-x` disables the auth.txt configuration.
+    Currently it wants to scan /home for authorized_keys, this is broken on a mac.
 
 ## Misc notes.
 
@@ -124,5 +129,3 @@ The informational message allows you to do troubleshooting of keys by having a u
 and that will verify that the proxy is aware of and is accepting their keys.
 This also allows you to separate the people who can upload from the people who manage the actual machine.
 
-The auth.txt file format is documented in src/test/resources:
-    TODO:  document this outside the file.

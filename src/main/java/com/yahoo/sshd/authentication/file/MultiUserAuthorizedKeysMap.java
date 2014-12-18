@@ -39,10 +39,10 @@ public class MultiUserAuthorizedKeysMap {
                     new ConcurrentHashMap<>();
 
     /**
-     * given a user name and a file, update their authorized keys.
+     * Given a user name and a file, update their authorized keys. Closes authorizedKeysStream on completion.
      * 
      * @param username
-     * @param authorizedKeysFile
+     * @param authorizedKeysStream
      * @throws FileNotFoundException
      */
     public void updateUser(final String username, final InputStream authorizedKeysStream) throws FileNotFoundException {
@@ -57,7 +57,7 @@ public class MultiUserAuthorizedKeysMap {
 
             // TODO: fix exception FNF is wrong.
             if (newKeys.isEmpty()) {
-                throw new FileNotFoundException("new keys is empty");
+                throw new FileNotFoundException("No keys found");
             }
 
             userToPkToAuthKeyMap.put(username, newKeys);
@@ -70,6 +70,12 @@ public class MultiUserAuthorizedKeysMap {
             LOGGER.info("Unable to update keys for " + username, e);
         } catch (IOException e) {
             LOGGER.info("Unable to update keys for " + username + " " + e.getMessage());
+        } finally {
+            try {
+                authorizedKeysStream.close();
+            } catch (IOException e) {
+                LOGGER.debug("close failed", e);
+            }
         }
     }
 

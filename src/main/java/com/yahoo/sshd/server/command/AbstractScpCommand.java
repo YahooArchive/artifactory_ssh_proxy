@@ -111,7 +111,12 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
     @Override
     public void setSession(ServerSession session) {
         this.session = session;
+        @SuppressWarnings("resource")
         SshRequestLog requestLog = getSshRequestLog();
+        if (null == requestLog) {
+            return;
+        }
+
         requestLogListener = new SshRequestLogListener(requestLog);
         requestLogListener.registerSession(session);
     }
@@ -129,7 +134,11 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
         }
     }
 
-    abstract protected SshRequestLog getSshRequestLog();
+    /**
+     * 
+     * @return an instance of {@link SshRequestLog} that can be used to log all requests.
+     */
+    protected abstract SshRequestLog getSshRequestLog();
 
 
 }

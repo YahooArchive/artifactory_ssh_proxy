@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.sshd.server.settings.SshdConfigurationException;
 
 public class Sshd implements Daemon, Runnable {
+    @SuppressWarnings("unused")
     private static final Logger LOGGER = LoggerFactory.getLogger(Sshd.class);
 
     /*

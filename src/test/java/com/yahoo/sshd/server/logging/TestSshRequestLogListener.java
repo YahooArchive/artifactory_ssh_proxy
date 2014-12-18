@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 
 public class TestSshRequestLogListener {
 
+    @SuppressWarnings("resource")
     @Test
     public void testRequestLogDoLog() {
         ServerSession session = Mockito.mock(ServerSession.class);

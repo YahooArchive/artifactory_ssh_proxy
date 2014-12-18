@@ -34,8 +34,15 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FileTreeWalker implements FileTreeWalkerInterface {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileTreeWalker.class);
+/**
+ * an implementation of {@link FileTreeWalkerInterface} which looks for new public keys in
+ * /<path>/<user>/.ssh/authorized_keys
+ * 
+ * @author areese
+ * 
+ */
+public class HomeDirectoryTreeWalker implements FileTreeWalkerInterface {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HomeDirectoryTreeWalker.class);
 
     private final WatchService watchService;
     private final Map<WatchKey, Path> watchKeys;
@@ -69,8 +76,7 @@ public class FileTreeWalker implements FileTreeWalkerInterface {
                 }
             }
 
-            // skip anything that is more than homedir length+2 and not
-            // named .ssh
+            // skip anything that is more than homedir length+2 and not named .ssh
             final int dirCount = dir.getNameCount();
             if (dirCount > getHomeDirNameCount() + 1 && !dir.endsWith(".ssh")) {
                 if (LOGGER.isDebugEnabled()) {
@@ -104,7 +110,7 @@ public class FileTreeWalker implements FileTreeWalkerInterface {
 
     private final FileVisitor fileVisitor = new FileVisitor();
 
-    public FileTreeWalker(final WatchService watchService, final Map<WatchKey, Path> watchKeys,
+    public HomeDirectoryTreeWalker(final WatchService watchService, final Map<WatchKey, Path> watchKeys,
                     final Path homeDirectoryBasePath, final List<Path> excludedPaths,
                     final MultiUserAuthorizedKeysMap authorizedKeysMap) {
 

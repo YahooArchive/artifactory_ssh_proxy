@@ -19,31 +19,34 @@ import java.util.Collection;
 import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
 
+import com.yahoo.sshd.utils.DirectoryWatchService;
+
 public interface MultiUserPKAuthenticator extends PublickeyAuthenticator {
 
-    void start() throws IOException;
-
     /**
-     * Update the key for a user in the map
+     * Called on initial load to start any tasks that will keep the authenticator up to date. Most implementations use
+     * this to start a {@link DirectoryWatchService} which watches for changes.
      * 
-     * @param username
-     * @param authorizedKeysStream
-     * @throws FileNotFoundException
+     * @throws IOException
      */
-    // void updateUser(final String username,
-    // final InputStream authorizedKeysStream)
-    // throws FileNotFoundException;
+    void start() throws IOException;
 
     /**
      * Authenticate a user in the map
      * 
      * @param username
      * @param publicKey
+     * @param session
      * @return
      */
     @Override
     boolean authenticate(String username, PublicKey publicKey, ServerSession session);
 
+    /**
+     * If this returns <1, the loading code assumes and error and fails startup.
+     * 
+     * @return the number of keys loaded.
+     */
     int getNumberOfKeysLoads();
 
     /**

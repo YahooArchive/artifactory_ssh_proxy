@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.security.PublicKey;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.sshd.server.session.ServerSession;
@@ -30,13 +29,19 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
 import com.yahoo.sshd.utils.ThreadUtils;
 
-public class FileBasedPKAuthenticator implements MultiUserPKAuthenticator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileBasedPKAuthenticator.class);
+/**
+ * A public key authenticator that scans /home/<user>/.ssh/authorized_keys for public key files.
+ * 
+ * @author areese
+ * 
+ */
+public class HomeDirectoryScanningPKAuthenticator implements MultiUserPKAuthenticator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HomeDirectoryScanningPKAuthenticator.class);
     private final AuthorizedKeysFileScanner authorizedKeysFileScanner;
 
     private final MultiUserAuthorizedKeysMap authorizedKeysMap;
 
-    public FileBasedPKAuthenticator(final CountDownLatch countdownLatch, final File homeDirectoryBasePath,
+    public HomeDirectoryScanningPKAuthenticator(final CountDownLatch countdownLatch, final File homeDirectoryBasePath,
                     final List<Path> excludedPaths) throws IOException {
         // Setup the scanner that keeps the pk's up to date.
         this.authorizedKeysMap = new MultiUserAuthorizedKeysMap();
@@ -46,8 +51,7 @@ public class FileBasedPKAuthenticator implements MultiUserPKAuthenticator {
     }
 
     /**
-     * This should be dealt with in a thread. we really should make sure akfs has it's thread going instead of calling
-     * start here.
+     * Starts the {@link AuthorizedKeysFileScanner} thread.
      * 
      * @throws IOException
      */
