@@ -76,8 +76,7 @@ public class HomeDirectoryTreeWalker implements FileTreeWalkerInterface {
                 }
             }
 
-            // skip anything that is more than homedir length+2 and not
-            // named .ssh
+            // skip anything that is more than homedir length+2 and not named .ssh
             final int dirCount = dir.getNameCount();
             if (dirCount > getHomeDirNameCount() + 1 && !dir.endsWith(".ssh")) {
                 if (LOGGER.isDebugEnabled()) {

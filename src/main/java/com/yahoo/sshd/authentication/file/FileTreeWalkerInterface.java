@@ -15,6 +15,14 @@ package com.yahoo.sshd.authentication.file;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import com.yahoo.sshd.utils.DirectoryWatchService;
+
+/**
+ * This interface is for listening for events from {@link DirectoryWatchService}.
+ * {@link FileTreeWalkerInterface#registerAll(Path)} is used to register a direcotry
+ * @author areese
+ *
+ */
 public interface FileTreeWalkerInterface {
     void registerAll(final Path start) throws IOException;
 

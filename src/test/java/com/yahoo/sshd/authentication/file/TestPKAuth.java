@@ -114,9 +114,7 @@ public class TestPKAuth {
     public void testAllKeys(MultiUserPKAuthenticator mupka, PublicKey publicKey, String user, String fileName)
                     throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 
-        // now for all of these public keys ensure that "test", auths against
-        // them
-
+        // now for all of these public keys ensure that "test", auths against them
         ServerSession session = Mockito.mock(ServerSession.class);
         IoSession ioSession = Mockito.mock(IoSession.class);
         Mockito.when(session.getIoSession()).thenReturn(ioSession);
@@ -129,9 +127,7 @@ public class TestPKAuth {
     public void testBadKeys(MultiUserPKAuthenticator mupka, PublicKey publicKey, String user, String fileName)
                     throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 
-        // now for all of these public keys ensure that "test", auths against
-        // them
-
+        // now for all of these public keys ensure that "test", can auth against them
         ServerSession session = Mockito.mock(ServerSession.class);
         IoSession ioSession = Mockito.mock(IoSession.class);
         Mockito.when(session.getIoSession()).thenReturn(ioSession);

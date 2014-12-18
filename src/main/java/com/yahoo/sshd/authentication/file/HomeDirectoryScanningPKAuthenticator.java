@@ -51,8 +51,7 @@ public class HomeDirectoryScanningPKAuthenticator implements MultiUserPKAuthenti
     }
 
     /**
-     * This should be dealt with in a thread. we really should make sure akfs has it's thread going instead of calling
-     * start here.
+     * Starts the {@link AuthorizedKeysFileScanner} thread.
      * 
      * @throws IOException
      */
