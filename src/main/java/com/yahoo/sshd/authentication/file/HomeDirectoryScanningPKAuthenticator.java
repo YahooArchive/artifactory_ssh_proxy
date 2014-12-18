@@ -35,13 +35,13 @@ import com.yahoo.sshd.utils.ThreadUtils;
  * @author areese
  * 
  */
-public class FileBasedPKAuthenticator implements MultiUserPKAuthenticator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileBasedPKAuthenticator.class);
+public class HomeDirectoryScanningPKAuthenticator implements MultiUserPKAuthenticator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HomeDirectoryScanningPKAuthenticator.class);
     private final AuthorizedKeysFileScanner authorizedKeysFileScanner;
 
     private final MultiUserAuthorizedKeysMap authorizedKeysMap;
 
-    public FileBasedPKAuthenticator(final CountDownLatch countdownLatch, final File homeDirectoryBasePath,
+    public HomeDirectoryScanningPKAuthenticator(final CountDownLatch countdownLatch, final File homeDirectoryBasePath,
                     final List<Path> excludedPaths) throws IOException {
         // Setup the scanner that keeps the pk's up to date.
         this.authorizedKeysMap = new MultiUserAuthorizedKeysMap();

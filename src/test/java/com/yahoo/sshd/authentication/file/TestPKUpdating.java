@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
 @Test(groups = "unit")
 public class TestPKUpdating {
     private class TestContext {
-        FileBasedPKAuthenticator publickeyAuthenticator;
+        HomeDirectoryScanningPKAuthenticator publickeyAuthenticator;
     }
 
     static final String pubKeys = "src/test/resources/keys/";
@@ -99,7 +99,7 @@ public class TestPKUpdating {
         // check for them.
         CountDownLatch waiter = new CountDownLatch(1);
         testContext.publickeyAuthenticator =
-                        new FileBasedPKAuthenticator(waiter, homeDir, Arrays.asList(new Path[] {new File(homeDir, "y")
+                        new HomeDirectoryScanningPKAuthenticator(waiter, homeDir, Arrays.asList(new Path[] {new File(homeDir, "y")
                                         .toPath()}));
         testContext.publickeyAuthenticator.start();
 

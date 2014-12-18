@@ -19,10 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
 
@@ -43,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
-import com.yahoo.sshd.authentication.file.FileBasedPKAuthenticator;
+import com.yahoo.sshd.authentication.file.HomeDirectoryScanningPKAuthenticator;
 import com.yahoo.sshd.server.Sshd;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.shell.MessageShellFactory;
@@ -255,7 +253,7 @@ public class SshdProxySettings implements SshdSettingsInterface {
     protected MultiUserPKAuthenticator getFileBasedAuth(final CountDownLatch countdownLatch) throws IOException {
         final File keyHome = new File(System.getProperty("home", "/home/"));
 
-        return new FileBasedPKAuthenticator(countdownLatch, keyHome, Arrays.asList(new Path[] {new File(
+        return new HomeDirectoryScanningPKAuthenticator(countdownLatch, keyHome, Arrays.asList(new Path[] {new File(
                         "/usr/local/sshproxy/").toPath()}));
     }
 

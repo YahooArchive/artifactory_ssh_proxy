@@ -179,9 +179,9 @@ public class TestLoader {
         try (AuthorizedKeysFileScanner akfs =
                         new AuthorizedKeysFileScanner(wakeupLatch, authorizedKeysMap, directoryPath,
                                         Collections.EMPTY_LIST)) {
-            if (akfs.getFileEventHandler() instanceof FileBasedPKAuthenticatorEventHandler) {
-                FileBasedPKAuthenticatorEventHandler auth =
-                                (FileBasedPKAuthenticatorEventHandler) akfs.getFileEventHandler();
+            if (akfs.getFileEventHandler() instanceof HomeDirectoryScanningPKEventHandler) {
+                HomeDirectoryScanningPKEventHandler auth =
+                                (HomeDirectoryScanningPKEventHandler) akfs.getFileEventHandler();
                 auth.handleWatchedPathChanged(filePathThatChanged);
             }
         }
@@ -276,7 +276,7 @@ public class TestLoader {
     public void testExcluded() throws IOException, InterruptedException {
         MultiUserAuthorizedKeysMap authorizedKeysMap = Mockito.mock(MultiUserAuthorizedKeysMap.class);
 
-        FileTreeWalker walker = Mockito.mock(FileTreeWalker.class);
+        HomeDirectoryTreeWalker walker = Mockito.mock(HomeDirectoryTreeWalker.class);
 
         CountDownLatch wakeupLatch = new CountDownLatch(1);
         try (AuthorizedKeysFileScanner akfs =

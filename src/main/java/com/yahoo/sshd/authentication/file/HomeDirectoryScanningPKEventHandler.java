@@ -43,14 +43,14 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.utils.DirectoryWatchServiceEventHandler;
 
-public class FileBasedPKAuthenticatorEventHandler implements DirectoryWatchServiceEventHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileBasedPKAuthenticatorEventHandler.class);
+public class HomeDirectoryScanningPKEventHandler implements DirectoryWatchServiceEventHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HomeDirectoryScanningPKEventHandler.class);
 
     private final Path watchedDirectory;
     private final MultiUserAuthorizedKeysMap authorizedKeysMap;
     private final FileTreeWalkerInterface treeWalker;
 
-    public FileBasedPKAuthenticatorEventHandler(final Path homeDirectoryBasePath,
+    public HomeDirectoryScanningPKEventHandler(final Path homeDirectoryBasePath,
                     final MultiUserAuthorizedKeysMap authorizedKeysMap, final FileTreeWalkerInterface treeWalker) {
         this.watchedDirectory = homeDirectoryBasePath.toAbsolutePath();
         this.authorizedKeysMap = authorizedKeysMap;
@@ -108,9 +108,7 @@ public class FileBasedPKAuthenticatorEventHandler implements DirectoryWatchServi
 
         // the user is 0, .ssh is 1, and authorized_keys is 2.
         String username = userPath.getName(0).toString();
-        // now we have a complete path (file), and a username, so we can
-        // load
-        // the key
+        // now we have a complete path (file), and a username, so we can load the key
         loadAuthorizedKeysForUser(username, authorizedKeysFile);
     }
 

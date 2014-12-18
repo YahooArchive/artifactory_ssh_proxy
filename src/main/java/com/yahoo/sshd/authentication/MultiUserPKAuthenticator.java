@@ -24,17 +24,6 @@ public interface MultiUserPKAuthenticator extends PublickeyAuthenticator {
     void start() throws IOException;
 
     /**
-     * Update the key for a user in the map
-     * 
-     * @param username
-     * @param authorizedKeysStream
-     * @throws FileNotFoundException
-     */
-    // void updateUser(final String username,
-    // final InputStream authorizedKeysStream)
-    // throws FileNotFoundException;
-
-    /**
      * Authenticate a user in the map
      * 
      * @param username
@@ -44,6 +33,11 @@ public interface MultiUserPKAuthenticator extends PublickeyAuthenticator {
     @Override
     boolean authenticate(String username, PublicKey publicKey, ServerSession session);
 
+    /**
+     * If this returns <1, the loading code assumes and error and fails startup.
+     * 
+     * @return the number of keys loaded.
+     */
     int getNumberOfKeysLoads();
 
     /**

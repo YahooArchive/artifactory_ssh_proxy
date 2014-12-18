@@ -41,8 +41,8 @@ import org.slf4j.LoggerFactory;
  * @author areese
  * 
  */
-public class FileTreeWalker implements FileTreeWalkerInterface {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileTreeWalker.class);
+public class HomeDirectoryTreeWalker implements FileTreeWalkerInterface {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HomeDirectoryTreeWalker.class);
 
     private final WatchService watchService;
     private final Map<WatchKey, Path> watchKeys;
@@ -111,7 +111,7 @@ public class FileTreeWalker implements FileTreeWalkerInterface {
 
     private final FileVisitor fileVisitor = new FileVisitor();
 
-    public FileTreeWalker(final WatchService watchService, final Map<WatchKey, Path> watchKeys,
+    public HomeDirectoryTreeWalker(final WatchService watchService, final Map<WatchKey, Path> watchKeys,
                     final Path homeDirectoryBasePath, final List<Path> excludedPaths,
                     final MultiUserAuthorizedKeysMap authorizedKeysMap) {
 
