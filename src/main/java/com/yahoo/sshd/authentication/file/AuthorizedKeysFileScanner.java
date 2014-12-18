@@ -60,6 +60,14 @@ public class AuthorizedKeysFileScanner extends DirectoryWatchService {
     private final DirectoryWatchServiceEventHandler fileEventHandler;
     private final Map<WatchKey, Path> watchKeys = new HashMap<WatchKey, Path>();
 
+    /**
+     * 
+     * @param wakeupLatch Latch that countdown is called on when start is done registering everything.
+     * @param authorizedKeysMap
+     * @param homeDirectoryBasePath
+     * @param excluded
+     * @throws IOException
+     */
     public AuthorizedKeysFileScanner(final CountDownLatch wakeupLatch,
                     final MultiUserAuthorizedKeysMap authorizedKeysMap, final File homeDirectoryBasePath,
                     final List<Path> excluded) throws IOException {

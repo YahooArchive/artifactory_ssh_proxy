@@ -10,8 +10,6 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.common.forward.DefaultTcpipForwarderFactory;
-import org.apache.sshd.common.util.CloseableUtils;
-import org.apache.sshd.common.util.CloseableUtils.AbstractCloseable;
 import org.apache.sshd.server.keyprovider.PEMHostKeyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

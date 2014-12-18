@@ -58,8 +58,18 @@ public abstract class DirectoryWatchService implements AutoCloseable, Runnable {
 
     protected final Path watchedDirectory;
     protected final WatchService watchService;
+
+    /**
+     * Latch that countdown is called on when start is done registering everything.
+     */
     protected final CountDownLatch wakeupLatch;
 
+    /**
+     * 
+     * @param wakeupLatch Latch that countdown is called on when start is done registering everything.
+     * @param watchedDirectory
+     * @throws IOException
+     */
     public DirectoryWatchService(final CountDownLatch wakeupLatch, final File watchedDirectory) throws IOException {
         if (!watchedDirectory.exists() || !watchedDirectory.isDirectory() || !watchedDirectory.canRead()) {
             throw new FileNotFoundException(watchedDirectory.getAbsolutePath());
