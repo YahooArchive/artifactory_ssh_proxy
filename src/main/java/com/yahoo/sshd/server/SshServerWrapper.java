@@ -11,6 +11,7 @@ import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.common.forward.DefaultTcpipForwarderFactory;
 import org.apache.sshd.common.util.CloseableUtils;
+import org.apache.sshd.common.util.CloseableUtils.AbstractCloseable;
 import org.apache.sshd.server.keyprovider.PEMHostKeyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +148,6 @@ public class SshServerWrapper implements Runnable, Closeable {
         }
     }
 
-
     @Override
     public void close() throws IOException {
         try {
@@ -156,7 +156,14 @@ public class SshServerWrapper implements Runnable, Closeable {
             // reverse the order so we stop in the opposite order we started.
             List<RunnableComponent> list = Arrays.asList(settings.getExternalComponents());
             Collections.reverse(list);
-            CloseableUtils.sequential(list.toArray(new RunnableComponent[] {})).close(false).await();
+
+            for (RunnableComponent rc : list) {
+                try {
+                    rc.close();
+                } catch (IOException e) {
+                    LOGGER.info("close  " + rc + " failed ", e);
+                }
+            }
 
             LOGGER.info("Stopping sshd");
             sshd.stop();
