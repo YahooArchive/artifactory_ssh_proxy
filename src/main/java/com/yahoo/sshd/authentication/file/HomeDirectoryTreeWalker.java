@@ -185,8 +185,9 @@ public class HomeDirectoryTreeWalker implements FileTreeWalkerInterface {
                 LOGGER.debug("got user {} for {} ", userName, dirFile.getAbsolutePath());
             }
 
-            authorizedKeysMap.updateUser(userName, AuthorizedKeysFileScanner.getStream(userName, new File(dirFile,
-                            AuthorizedKeysFileScanner.AUTHORIZED_KEYS_NAME)));
+            File target = new File(dirFile, AuthorizedKeysFileScanner.AUTHORIZED_KEYS_NAME);
+            authorizedKeysMap.updateUser(userName, target.getAbsolutePath(),
+                            AuthorizedKeysFileScanner.getStream(userName, target));
 
             addWatchKey(key, dir);
 

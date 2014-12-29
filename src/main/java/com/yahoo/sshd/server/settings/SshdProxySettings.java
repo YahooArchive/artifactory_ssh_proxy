@@ -197,13 +197,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
         return cfInstances;
     }
 
-    static final boolean isLinux() {
-        return "Linux".equalsIgnoreCase(System.getProperty("os.name"));
-    }
-
     @Override
     public MultiUserPKAuthenticator getPublickeyAuthenticator() throws IOException, InterruptedException {
-
         /**
          * countdown is called on this latch when {@link MultiUserPKAuthenticator#start} is done.
          */

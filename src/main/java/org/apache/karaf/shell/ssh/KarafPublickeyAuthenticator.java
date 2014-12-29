@@ -154,7 +154,7 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
                         // KarafPublickeyAuthenticator.parseAuthorizedKeys closes the inputstream for us.
                         @SuppressWarnings("resource")
                         Map<PublicKey, AuthorizedKey> newKeys =
-                                        KarafPublickeyAuthenticator.parseAuthorizedKeys(new FileInputStream(af));
+                                        KarafPublickeyAuthenticator.parseAuthorizedKeys(af.getAbsolutePath(), new FileInputStream(af));
 
                         this.setKeys(newKeys);
                         LOGGER.debug("Successfully parsed {} keys from file {}", Integer.valueOf(newKeys.size()),
@@ -211,7 +211,7 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      */
-    public static final Map<PublicKey, AuthorizedKey> parseAuthorizedKeys(InputStream is) throws IOException,
+    public static final Map<PublicKey, AuthorizedKey> parseAuthorizedKeys(String filename, InputStream is) throws IOException,
                     NoSuchAlgorithmException, InvalidKeySpecException {
         LineNumberReader reader = null;
         try {
@@ -228,7 +228,7 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
 
             while ((line = reader.readLine()) != null) {
                 // YAHOO - separate string parsing in a single function;
-                parseAuthorizedKeysLine(ret, decoder, rsaKeyGen, dsaKeyGen, line, reader.getLineNumber());
+                parseAuthorizedKeysLine(ret, decoder, rsaKeyGen, dsaKeyGen, new LineInfo(filename, line, reader.getLineNumber()));
             }
 
             return ret;
@@ -255,9 +255,50 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
         return PAT_WHITESPACE.split(line, 3);
     }
 
+    public static final class LineInfo {
+        private String filename;
+        private String line;
+        private int lineNumber;
+
+        public LineInfo(String filename, String line, int lineNumber) {
+            this.filename = filename;
+            this.line = line;
+            this.lineNumber = lineNumber;
+        }
+
+        public String getFilename() {
+            return filename;
+        }
+
+        public void setFilename(String filename) {
+            this.filename = filename;
+        }
+
+        public String getLine() {
+            return line;
+        }
+
+        public void setLine(String line) {
+            this.line = line;
+        }
+
+        public int getLineNumber() {
+            return lineNumber;
+        }
+
+        public void setLineNumber(int lineNumber) {
+            this.lineNumber = lineNumber;
+        }
+
+    }
+
     public static boolean parseAuthorizedKeysLine(final Map<PublicKey, AuthorizedKey> ret, final Base64 decoder,
-                    final KeyFactory rsaKeyGen, final KeyFactory dsaKeyGen, final String line, final int lineNumber)
+                    final KeyFactory rsaKeyGen, final KeyFactory dsaKeyGen, final LineInfo lineinfo)
                     throws InvalidKeySpecException, UnsupportedEncodingException {
+
+        final String filename = lineinfo.getFilename();
+        final String line = lineinfo.getLine();
+        final int lineNumber = lineinfo.getLineNumber();
         try {
             if (line.startsWith("#") || line.trim().isEmpty()) {
                 return false; // skip # lines might be comment
@@ -265,7 +306,8 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
 
             String[] tokens = splitLine(line);
             if (tokens.length != 3) {
-                LOGGER.info("Authorized keys file line " + lineNumber + " does not contain 3 tokens. " + line);
+                LOGGER.info("Authorized keys file {} line {} does not contain 3 tokens: '{}'", filename, Integer.valueOf(lineNumber),
+                                line);
                 return false;
                 // throw new IOException("Authorized keys file line " + reader.getLineNumber() +
                 // " does not contain 3 tokens. " + line);
@@ -273,16 +315,16 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
 
             byte[] rawKey = decoder.decode(tokens[1].getBytes("UTF-8"));
             if (rawKey.length < 4) {
-                LOGGER.info("Authorized keys file line " + lineNumber
-                                + " contains a key with a format that does not match the first token. " + line);
+                LOGGER.info("Authorized keys file {} line {} contains a key with a format that does not match the first token: '{}'",
+                                filename, Integer.valueOf(lineNumber), line);
                 return false;
                 // throw new IOException("Authorized keys file line " + reader.getLineNumber() +
                 // " contains a key with a format that does not match the first token. " + line);
             }
 
             if (getInt(rawKey, 0) != 7 || !new String(rawKey, 4, 7, "UTF-8").equals(tokens[0])) {
-                LOGGER.info("Authorized keys file line " + lineNumber
-                                + " contains a key with a format that does not match the first token. " + line);
+                LOGGER.info("Authorized keys file {} line {} contains a key with a format that does not match the first token: '{}'",
+                                filename, Integer.valueOf(lineNumber), line);
                 return false;
                 // throw new IOException("Authorized keys file line " + reader.getLineNumber() +
                 // " contains a key with a format that does not match the first token. " + line);
@@ -313,7 +355,8 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
                 pos += n;
 
                 if (pos != rawKey.length) {
-                    LOGGER.info("Authorized keys file line " + lineNumber + " contains a DSA key with extra garbage.");
+                    LOGGER.info("Authorized keys file {} line {} contains a DSA key with extra garbage: '{}'",
+                                    filename, Integer.valueOf(lineNumber), line);
                     return false;
                     // throw new IOException("Authorized keys file line " + reader.getLineNumber() +
                     // " contains a DSA key with extra garbage.");
@@ -336,7 +379,8 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
                 pos += n;
 
                 if (pos != rawKey.length) {
-                    LOGGER.info("Authorized keys file line " + lineNumber + " contains a RSA key with extra garbage.");
+                    LOGGER.info("Authorized keys file {} line {} contains a RSA key with extra garbage: '{}'",
+                                    filename, Integer.valueOf(lineNumber), line);
                     return false;
                     // throw new IOException("Authorized keys file line " + reader.getLineNumber() +
                     // " contains a RSA key with extra garbage.");
@@ -345,7 +389,8 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
                 RSAPublicKeySpec ps = new RSAPublicKeySpec(modulus, e);
                 pk = rsaKeyGen.generatePublic(ps);
             } else {
-                LOGGER.info("Authorized keys file line " + lineNumber + " does not start with ssh-dss or ssh-rsa.");
+                LOGGER.info("Authorized keys file {} line {} does not start with ssh-dss or ssh-rsa: '{}'", filename,
+                                Integer.valueOf(lineNumber), line);
                 return false;
                 // throw new IOException("Authorized keys file line " + reader.getLineNumber() +
                 // " does not start with ssh-dss or ssh-rsa.");
@@ -356,7 +401,8 @@ public class KarafPublickeyAuthenticator implements PublickeyAuthenticator {
             return true;
         } catch (ArrayIndexOutOfBoundsException e) {
             // oops.
-            LOGGER.info("Authorized keys file line " + lineNumber + " contains a key with invalid data. " + line, e);
+            LOGGER.info("Authorized keys file " + filename + " line " + lineNumber
+                            + " contains a key with invalid data: '" + line + "'", e);
             return false;
         }
     }

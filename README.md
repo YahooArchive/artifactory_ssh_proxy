@@ -119,6 +119,14 @@ you should see:
     *---------------------------------------------------*
     Connection to dinnercare closed.
 
+With these instructions, you can copy the artifactory war to 
+`developer_config/webapps/artifactory.war` and then artifactory runs inside the ssh server:
+
+    [areese@dinnercare]$ scp -P 2222  dependency-reduced-pom.xml localhost:/libs-release-local/dependency-reduced-pom.xml
+    dependency-reduced-pom.xml                                                                    100% 9722     9.5KB/s   00:00    
+    [areese@dinnercare]$
+
+
 ## Misc notes.
 
 The sshd proxy embeds jetty to allow custom functionality.
@@ -141,3 +149,7 @@ The informational message allows you to do troubleshooting of keys by having a u
 and that will verify that the proxy is aware of and is accepting their keys.
 This also allows you to separate the people who can upload from the people who manage the actual machine.
 
+Download artifactory here:
+http://www.jfrog.com/open-source/
+
+then you can unzip the war and have the proxy load it.

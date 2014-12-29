@@ -99,8 +99,8 @@ public class TestPKUpdating {
         // check for them.
         CountDownLatch waiter = new CountDownLatch(1);
         testContext.publickeyAuthenticator =
-                        new HomeDirectoryScanningPKAuthenticator(waiter, homeDir, Arrays.asList(new Path[] {new File(homeDir, "y")
-                                        .toPath()}));
+                        new HomeDirectoryScanningPKAuthenticator(waiter, homeDir, Arrays.asList(new Path[] {new File(
+                                        homeDir, "y").toPath()}));
         testContext.publickeyAuthenticator.start();
 
         waiter.await();
@@ -148,7 +148,8 @@ public class TestPKUpdating {
         // first see if we can auth them.
         User user = normalUsers[0];
         try (FileInputStream fis = new FileInputStream(user.publicKey)) {
-            Map<PublicKey, AuthorizedKey> parseAuthorizedKeys = KarafPublickeyAuthenticator.parseAuthorizedKeys(fis);
+            Map<PublicKey, AuthorizedKey> parseAuthorizedKeys =
+                            KarafPublickeyAuthenticator.parseAuthorizedKeys(user.publicKey.getAbsolutePath(), fis);
 
             ServerSession sessionMock = Mockito.mock(ServerSession.class);
             IoSession ioSessionMock = Mockito.mock(IoSession.class);

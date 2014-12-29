@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 /**
  * TODO Add javadoc
@@ -55,7 +55,7 @@ public class PEMHostKeyProvider extends AbstractKeyPairProvider {
     }
 
     protected void doWriteKeyPair(KeyPair kp, OutputStream os) throws Exception {
-        try (PEMWriter w = new PEMWriter(new OutputStreamWriter(os))) {
+        try (JcaPEMWriter w = new JcaPEMWriter(new OutputStreamWriter(os))) {
             w.writeObject(kp);
             w.flush();
         }

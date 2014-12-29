@@ -93,7 +93,8 @@ public class TestLoader {
 
         // make sure we had interactions
         for (String expectedUser : USERS_EXEPECTED_IN_DUMMIES_HOME) {
-            Mockito.verify(authorizedKeysMap).updateUser(Matchers.eq(expectedUser), Matchers.any(InputStream.class));
+            Mockito.verify(authorizedKeysMap).updateUser(Matchers.eq(expectedUser), Matchers.anyString(),
+                            Matchers.any(InputStream.class));
         }
 
         // check that it's still alive
@@ -152,11 +153,12 @@ public class TestLoader {
             t.interrupt();
 
             Mockito.verify(authorizedKeysMap, Mockito.times(USERS_EXEPECTED_IN_DUMMIES_HOME.length)).updateUser(
-                            Matchers.anyString(), Matchers.any(InputStream.class));
+                            Matchers.anyString(), Matchers.anyString(), Matchers.any(InputStream.class));
 
             // make sure we had interactions
             for (String expectedUser : USERS_EXEPECTED_IN_DUMMIES_HOME) {
-                Mockito.verify(authorizedKeysMap).updateUser(Matchers.eq(expectedUser), Matchers.any(InputStream.class));
+                Mockito.verify(authorizedKeysMap).updateUser(Matchers.eq(expectedUser), Matchers.anyString(),
+                                Matchers.any(InputStream.class));
             }
         }
 
@@ -202,7 +204,7 @@ public class TestLoader {
                             ACTUAL_USER_PATH_WITH_NO_FILES);
         } finally {
             Mockito.verify(authorizedKeysMap, Mockito.times(0)).updateUser(Matchers.eq(ACTUAL_USER_NAME),
-                            Matchers.any(InputStream.class));
+                            Matchers.anyString(), Matchers.any(InputStream.class));
         }
     }
 
@@ -218,7 +220,7 @@ public class TestLoader {
         handleWatchedPathChange(authorizedKeysMap, NON_USER_NAME, DUMMIES_PATH_OBJECT, NON_USER_PATH);
 
         Mockito.verify(authorizedKeysMap, Mockito.times(0)).updateUser(Matchers.eq(NON_USER_NAME),
-                        Matchers.any(InputStream.class));
+                        Matchers.anyString(), Matchers.any(InputStream.class));
     }
 
     /**
@@ -235,7 +237,7 @@ public class TestLoader {
 
         } finally {
             Mockito.verify(authorizedKeysMap, Mockito.times(0)).updateUser(Matchers.eq(DIR_USER_NAME),
-                            Matchers.any(InputStream.class));
+                            Matchers.anyString(), Matchers.any(InputStream.class));
         }
     }
 
@@ -251,7 +253,7 @@ public class TestLoader {
         handleWatchedPathChange(authorizedKeysMap, DIR_USER_NAME, DUMMIES_PATH_OBJECT, ACTUAL_USER_PATH_WITH_FILES);
 
         Mockito.verify(authorizedKeysMap, Mockito.times(0)).updateUser(Matchers.eq(NON_USER_NAME),
-                        Matchers.any(InputStream.class));
+                        Matchers.anyString(), Matchers.any(InputStream.class));
     }
 
     /**
@@ -268,7 +270,7 @@ public class TestLoader {
                             ACTUAL_USER_PATH_WITH_EXTRA_SLASHES);
         } finally {
             Mockito.verify(authorizedKeysMap, Mockito.times(0)).updateUser(Matchers.eq(NON_USER_NAME),
-                            Matchers.any(InputStream.class));
+                            Matchers.anyString(), Matchers.any(InputStream.class));
         }
     }
 

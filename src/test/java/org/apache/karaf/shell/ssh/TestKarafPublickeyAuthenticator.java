@@ -49,7 +49,8 @@ public class TestKarafPublickeyAuthenticator {
     private PublicKey loadFirstKey(String filename) throws FileNotFoundException, IOException,
                     NoSuchAlgorithmException, InvalidKeySpecException {
         try (FileInputStream fis = new FileInputStream(new File(filename))) {
-            Map<PublicKey, AuthorizedKey> parseAuthorizedKeys = KarafPublickeyAuthenticator.parseAuthorizedKeys(fis);
+            Map<PublicKey, AuthorizedKey> parseAuthorizedKeys =
+                            KarafPublickeyAuthenticator.parseAuthorizedKeys(filename, fis);
             return parseAuthorizedKeys.keySet().iterator().next();
         }
     }
