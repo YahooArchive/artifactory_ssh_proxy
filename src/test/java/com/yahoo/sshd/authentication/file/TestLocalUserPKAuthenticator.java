@@ -49,7 +49,9 @@ public class TestLocalUserPKAuthenticator {
 
         Map<PublicKey, AuthorizedKey> publicKeys = null;
         try (FileInputStream karafFis = new FileInputStream(lpka.getAuthorizedKeysPath())) {
-            publicKeys = KarafPublickeyAuthenticator.parseAuthorizedKeys(karafFis);
+            publicKeys =
+                            KarafPublickeyAuthenticator.parseAuthorizedKeys(lpka.getAuthorizedKeysPath()
+                                            .getAbsolutePath(), karafFis);
         }
 
         for (PublicKey publicKey : publicKeys.keySet()) {

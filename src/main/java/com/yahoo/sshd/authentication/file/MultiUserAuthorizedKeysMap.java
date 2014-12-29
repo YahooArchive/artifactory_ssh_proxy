@@ -45,15 +45,16 @@ public class MultiUserAuthorizedKeysMap {
      * @param authorizedKeysStream
      * @throws FileNotFoundException
      */
-    public void updateUser(final String username, final InputStream authorizedKeysStream) throws FileNotFoundException {
+    public void updateUser(final String username, final String filename, final InputStream authorizedKeysStream)
+                    throws FileNotFoundException {
         if (null == authorizedKeysStream) {
             return;
         }
 
         try {
             Map<PublicKey, AuthorizedKey> newKeys =
-                            Collections.unmodifiableMap(KarafPublickeyAuthenticator
-                                            .parseAuthorizedKeys(authorizedKeysStream));
+                            Collections.unmodifiableMap(KarafPublickeyAuthenticator.parseAuthorizedKeys(filename,
+                                            authorizedKeysStream));
 
             // TODO: fix exception FNF is wrong.
             if (newKeys.isEmpty()) {

@@ -54,9 +54,9 @@ public class TestPKAuth {
 
         for (String fileName : pkFiles) {
             try (FileInputStream fis = new FileInputStream(new File(base + File.separator + fileName))) {
-                mupka.updateUser(fileName, fis);
+                mupka.updateUser(fileName, fileName, fis);
                 try (FileInputStream karafFis = new FileInputStream(base + File.separator + fileName)) {
-                    fileToPkMap.put(fileName, KarafPublickeyAuthenticator.parseAuthorizedKeys(karafFis));
+                    fileToPkMap.put(fileName, KarafPublickeyAuthenticator.parseAuthorizedKeys(fileName, karafFis));
                 }
             }
         }

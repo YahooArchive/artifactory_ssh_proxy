@@ -79,8 +79,9 @@ public class HomeDirectoryScanningPKAuthenticator implements MultiUserPKAuthenti
      * @param authorizedKeysFile
      * @throws FileNotFoundException
      */
-    public void updateUser(final String username, final InputStream authorizedKeysFile) throws FileNotFoundException {
-        authorizedKeysMap.updateUser(username, authorizedKeysFile);
+    public void updateUser(final String username, final String filename, final InputStream authorizedKeysFile)
+                    throws FileNotFoundException {
+        authorizedKeysMap.updateUser(username, filename, authorizedKeysFile);
     }
 
     @Override

@@ -68,7 +68,7 @@ public class LocalUserPKAuthenticator implements MultiUserPKAuthenticator {
     public void start() throws IOException {
         try {
             File authorizedKeysFile = getAuthorizedKeysPath();
-            authorizedKeysMap.updateUser(getUserName(),
+            authorizedKeysMap.updateUser(getUserName(), authorizedKeysFile.getAbsolutePath(),
                             AuthorizedKeysFileScanner.getStream(getUserName(), authorizedKeysFile));
         } catch (FileNotFoundException e) {
             LOGGER.error("Unable to load authorized_keys for " + userName, e);
