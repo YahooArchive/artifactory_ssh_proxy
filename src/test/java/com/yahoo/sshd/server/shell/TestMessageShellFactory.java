@@ -17,14 +17,13 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
 
-import junit.framework.Assert;
-
 import org.apache.sshd.common.PtyMode;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.Signal;
 import org.apache.sshd.server.SignalListener;
 import org.apache.sshd.server.shell.InvertedShellWrapper;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Test(groups = "unit")

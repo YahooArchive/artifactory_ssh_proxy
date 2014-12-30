@@ -15,10 +15,9 @@ package com.yahoo.sshd.server.filesystem;
 import java.io.IOException;
 import java.text.ParseException;
 
-import junit.framework.Assert;
-
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
