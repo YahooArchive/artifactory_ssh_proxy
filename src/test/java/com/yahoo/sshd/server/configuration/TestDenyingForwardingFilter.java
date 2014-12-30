@@ -12,11 +12,10 @@
  */
 package com.yahoo.sshd.server.configuration;
 
-import junit.framework.Assert;
-
 import org.apache.sshd.common.Session;
 import org.apache.sshd.common.SshdSocketAddress;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 
