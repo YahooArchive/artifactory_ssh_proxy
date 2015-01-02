@@ -107,7 +107,8 @@ public class SshServerWrapper implements Runnable, Closeable {
 
         // DENY all ssh forwarding.
         sshd.setTcpipForwardingFilter(new DenyingForwardingFilter());
-
+        sshd.setTcpipForwarderFactory(new DefaultTcpipForwarderFactory());
+        
         /**
          * This deny's all REMOTE forwards. -Rport:host:port
          * 

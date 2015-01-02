@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,9 @@ import org.apache.sshd.common.cipher.ARCFOUR128;
 import org.apache.sshd.common.cipher.ARCFOUR256;
 import org.apache.sshd.common.cipher.BlowfishCBC;
 import org.apache.sshd.common.cipher.TripleDESCBC;
+import org.apache.sshd.common.util.OsUtils;
 import org.apache.sshd.server.Command;
+import org.apache.sshd.server.shell.ProcessShellFactory.TtyOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +48,7 @@ import com.yahoo.sshd.authentication.file.HomeDirectoryScanningPKAuthenticator;
 import com.yahoo.sshd.authentication.file.LocalUserPKAuthenticator;
 import com.yahoo.sshd.server.Sshd;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
+import com.yahoo.sshd.server.shell.ForwardingShellFactory;
 import com.yahoo.sshd.server.shell.MessageShellFactory;
 import com.yahoo.sshd.server.shell.SshProxyMessage;
 import com.yahoo.sshd.tools.artifactory.ArtifactoryInformation;
@@ -52,6 +56,21 @@ import com.yahoo.sshd.utils.RunnableComponent;
 
 public class SshdProxySettings implements SshdSettingsInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(SshdProxySettings.class);
+
+    /**
+     * Type of shell that gets created when someone ssh's in.
+     */
+    public static enum ShellMode {
+        /**
+         * Use {@link MessageShellFactory} to create a shell that simply presents a message.
+         */
+        MESSAGE,
+
+        /**
+         * Use {@link ForwardingShellFactory} to create a shell which echo's input back, but also allows forwarding.
+         */
+        FORWARDING_ECHO_SHELL
+    }
 
     /**
      * The port the ssh server listens on.
@@ -87,7 +106,15 @@ public class SshdProxySettings implements SshdSettingsInterface {
     protected final String artifactoryAuthorizationFilePath;
     protected final String requestLogFilePath;
 
+    /**
+     * True if in development mode, this is used for running locally to skip extra setup of auth.
+     */
     protected final boolean developmentMode;
+
+    /**
+     * Type of shell that gets created when someone ssh's in.
+     */
+    protected final ShellMode shellMode;
 
     public SshdProxySettings(SshdSettingsBuilder b) throws SshdConfigurationException {
 
@@ -127,6 +154,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
         }
 
         this.developmentMode = b.getDevelopmentMode();
+
+        this.shellMode = b.getShellMode();
     }
 
     /**
@@ -222,9 +251,36 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
     @Override
     public Factory<Command> getShellFactory() {
-        // TODO when separating out settings, we'll provide a different success
-        // message, or a file path for it.
-        return new MessageShellFactory(SshProxyMessage.MESSAGE_STRING);
+
+        EnumSet<TtyOptions> ttyOptions;
+
+        if (OsUtils.isUNIX()) {
+            /**
+             * org.apache.sshd.server.shell.ProcessShellFactory does this: ttyOptions = EnumSet.of(TtyOptions.ONlCr);
+             * 
+             * However, it doesn't seem to work for me. So in our copy of
+             * org.apache.sshd.server.shell.TtyFilterOutputStream.TtyFilterOutputStream(EnumSet<TtyOptions>,
+             * OutputStream, TtyFilterInputStream), we have a special hack that if TtyOptions.INlCr and TtyOptions.ICrNl
+             * are both set, send cr nl instead. no idea if the windows even works.
+             */
+            // ttyOptions = EnumSet.of(TtyOptions.ONlCr);
+            ttyOptions = EnumSet.of(TtyOptions.OCrNl, TtyOptions.INlCr, TtyOptions.ICrNl);
+        } else {
+            ttyOptions = EnumSet.of(TtyOptions.Echo, TtyOptions.OCrNl, TtyOptions.INlCr, TtyOptions.ICrNl);
+        }
+
+        switch (shellMode) {
+            case FORWARDING_ECHO_SHELL:
+                return new ForwardingShellFactory(ttyOptions);
+
+            case MESSAGE:
+            default:
+                // TODO when separating out settings, we'll provide a different success
+                // message, or a file path for it.
+                return new MessageShellFactory(SshProxyMessage.MESSAGE_STRING);
+
+        }
+
     }
 
     @Override

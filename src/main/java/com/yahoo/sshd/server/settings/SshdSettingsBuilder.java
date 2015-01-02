@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.sshd.server.command.DefaultScpCommandFactory;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.jetty.JettyRunnableComponent;
+import com.yahoo.sshd.server.settings.SshdProxySettings.ShellMode;
 import com.yahoo.sshd.utils.RunnableComponent;
 
 /**
@@ -81,7 +82,6 @@ public class SshdSettingsBuilder {
     private String webappsDir;
     private String hostKeyPath;
     private String rootPath;
-    private List<String> commandFactoryStrings = new ArrayList<>();
 
     private List<? extends DelegatingCommandFactory> commandFactories;
 
@@ -94,6 +94,8 @@ public class SshdSettingsBuilder {
     private String requestLogPath;
 
     private Boolean developerMode;
+
+    private ShellMode shellMode;
 
     protected String overriddenRoot;
 
@@ -135,7 +137,6 @@ public class SshdSettingsBuilder {
             throw new SshdConfigurationException(e);
         }
 
-        commandFactoryStrings = findCommandFactoryStrings();
         rootPath = findRoot(overriddenRoot);
         hostKeyPath = findHostKeyPath();
         sshdPort = findSshdPort();
@@ -146,6 +147,7 @@ public class SshdSettingsBuilder {
         requestLogPath = findRequestLogPath();
         httpPort = findHttpPort();
         webappsDir = findWebappDir();
+        shellMode = findShellMode();
 
         // do this last, so it can rely on everything before/
         externalComponents = createExternalComponents();
@@ -267,38 +269,9 @@ public class SshdSettingsBuilder {
         return getStringFromConfig("sshd.hostKeyPath", defaultHostKeyPath, "got host key");
     }
 
-    private List<String> findCommandFactoryStrings() {
-        if (null == commandFactoryStrings || commandFactoryStrings.isEmpty()) {
-            commandFactoryStrings = DEFAULT_COMMAND_FACTORIES;
-        }
-
-        return commandFactoryStrings;
-    }
-
-    @SuppressWarnings("unchecked")
     List<DelegatingCommandFactory> createCfInstances() {
-        List<DelegatingCommandFactory> cfInstances = new ArrayList<>(commandFactoryStrings.size());
-
-        for (String cfClass : commandFactoryStrings) {
-            try {
-                Class<DelegatingCommandFactory> classInstance;
-
-                try {
-                    classInstance = (Class<DelegatingCommandFactory>) Class.forName(cfClass);
-                } catch (ClassNotFoundException e) {
-                    // TODO This hack exists to allow for some testing on the command line, and is probably useless at
-                    // this point.
-                    String newClass = "com.yahoo.sshd.server.command." + cfClass.trim();
-                    LOGGER.error("failed to load class " + cfClass + " trying  " + newClass, e);
-                    classInstance = (Class<DelegatingCommandFactory>) Class.forName(newClass);
-                }
-                DelegatingCommandFactory newCommandFactory = classInstance.newInstance();
-                cfInstances.add(newCommandFactory);
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-                LOGGER.error(cfClass + " couldn't be found ", e);
-            }
-        }
-
+        List<DelegatingCommandFactory> cfInstances = new ArrayList<>();
+        cfInstances.add(new DefaultScpCommandFactory());
         return cfInstances;
     }
 
@@ -521,16 +494,6 @@ public class SshdSettingsBuilder {
         return this;
     }
 
-    protected List<String> getCommandFactoryStrings() {
-        return commandFactoryStrings;
-    }
-
-    protected SshdSettingsBuilder setCommandFactoryStrings(List<String> commandFactoryStrings) {
-        this.commandFactoryStrings = commandFactoryStrings;
-        return this;
-    }
-
-
     protected List<? extends DelegatingCommandFactory> getCommandFactories() {
         if (null == commandFactories || commandFactories.isEmpty()) {
             commandFactories = createCfInstances();
@@ -682,5 +645,30 @@ public class SshdSettingsBuilder {
 
     public boolean getDevelopmentMode() {
         return (null == developerMode) ? false : developerMode.booleanValue();
+    }
+
+
+    /**
+     * Generate the path for where request/access logs should be written to.
+     * 
+     * @return a path to write access logs to.
+     */
+    protected ShellMode findShellMode() {
+        ShellMode defaultMode = ShellMode.MESSAGE;
+        String modeString = getStringFromConfig("sshd.shellMode", defaultMode.name(), "got ShellMode");
+        return ShellMode.valueOf(modeString);
+    }
+
+
+    public SshdSettingsBuilder setSetShellMode(ShellMode shellMode) {
+        this.shellMode = shellMode;
+        return this;
+    }
+
+    public ShellMode getShellMode() {
+        if (null == shellMode) {
+            shellMode = findShellMode();
+        }
+        return shellMode;
     }
 }

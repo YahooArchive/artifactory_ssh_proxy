@@ -1,0 +1,9 @@
+
+For auth override the following are required:
+
+1. tcp port forwarding of port X to artifactory host:port.
+2. Stream sniffing, we need to read the byte from the stream stripping out any Authorization headers.
+3. Add the authorization header where it's:  ssh_user:encrypted password.
+4. encrypted password comes from encrypting a salt and the username.
+5. if in the same jvm 4 may change to be more secure.
+6. write a plugin to validate the password.

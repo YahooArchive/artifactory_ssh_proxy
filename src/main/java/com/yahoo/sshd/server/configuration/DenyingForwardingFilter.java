@@ -63,7 +63,7 @@ public class DenyingForwardingFilter implements ForwardingFilter {
             LOGGER.debug("Connect forwarding requested from {} for {}", socketAddress, session);
         }
 
-        return false;
+        return true;
     }
 
     @Override

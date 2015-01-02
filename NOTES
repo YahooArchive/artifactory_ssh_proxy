@@ -1,0 +1,39 @@
+To eat the auth.
+
+
+Need to set the channelFactories:
+
+            ssh.setChannelFactories(channelFactories);
+
+
+            if (channelFactories == null) {
+                channelFactories = Arrays.asList(
+                        new ChannelSession.Factory(),
+                        new TcpipServerChannel.DirectTcpipFactory());
+            }
+
+
+Need to override TcpipServerChannel.DirectTcpipFactory and friends.
+
+Need to override the IOServiceFactory:
+org.apache.sshd.common.forward.TcpipServerChannel
+
+        connector = getSession().getFactoryManager().getIoServiceFactory()
+                .createConnector(handler);
+
+Which returns org.apache.sshd.common.io.nio2.Nio2ServiceFactory, which we need to override
+To override org.apache.sshd.common.io.nio2.Nio2Connector, which returns an org.apache.sshd.common.io.nio2.Nio2Session
+
+Which is where we can finally start eating bytes
+and worse.
+
+The bytes we need to eat may come across multiple writes, so we'll have to set a start eating and stop eating flag across peeks.
+
+This will get really Ugly because if Authorization comes as multiple packets, we'll have to buffer that bit somewhere.
+
+Basically we need to buffer at least the Authorization header:
+WWW-Authenticate: Basic realm="nmrs_m7VKmomQ2YM3:"
+
+So we need at a minimum a buffer of WWW-Authenticate: size, and if we read WWW-AuthFoo, then we can write that buffer, and the rest of the following bits, while the previous writes would have been no-ops causing latency.
+
+Worse, yet we need a secondary buffer which is looking for the \r\n\r\n ala cheap-alive, and we need to eat that and write out our auth bits.
