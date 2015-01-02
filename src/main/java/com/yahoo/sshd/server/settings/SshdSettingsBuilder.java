@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.sshd.server.command.DefaultScpCommandFactory;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.jetty.JettyRunnableComponent;
+import com.yahoo.sshd.server.settings.SshdProxySettings.ShellMode;
 import com.yahoo.sshd.utils.RunnableComponent;
 
 /**
@@ -94,6 +95,8 @@ public class SshdSettingsBuilder {
 
     private Boolean developerMode;
 
+    private ShellMode shellMode;
+
     protected String overriddenRoot;
 
     static final List<String> DEFAULT_COMMAND_FACTORIES = new ArrayList<>(Arrays.asList(new String[] {//
@@ -144,6 +147,7 @@ public class SshdSettingsBuilder {
         requestLogPath = findRequestLogPath();
         httpPort = findHttpPort();
         webappsDir = findWebappDir();
+        shellMode = findShellMode();
 
         // do this last, so it can rely on everything before/
         externalComponents = createExternalComponents();
@@ -265,7 +269,6 @@ public class SshdSettingsBuilder {
         return getStringFromConfig("sshd.hostKeyPath", defaultHostKeyPath, "got host key");
     }
 
-    @SuppressWarnings("unchecked")
     List<DelegatingCommandFactory> createCfInstances() {
         List<DelegatingCommandFactory> cfInstances = new ArrayList<>();
         cfInstances.add(new DefaultScpCommandFactory());
@@ -642,5 +645,30 @@ public class SshdSettingsBuilder {
 
     public boolean getDevelopmentMode() {
         return (null == developerMode) ? false : developerMode.booleanValue();
+    }
+
+
+    /**
+     * Generate the path for where request/access logs should be written to.
+     * 
+     * @return a path to write access logs to.
+     */
+    protected ShellMode findShellMode() {
+        ShellMode defaultMode = ShellMode.MESSAGE;
+        String modeString = getStringFromConfig("sshd.shellMode", defaultMode.name(), "got ShellMode");
+        return ShellMode.valueOf(modeString);
+    }
+
+
+    public SshdSettingsBuilder setSetShellMode(ShellMode shellMode) {
+        this.shellMode = shellMode;
+        return this;
+    }
+
+    public ShellMode getShellMode() {
+        if (null == shellMode) {
+            shellMode = findShellMode();
+        }
+        return shellMode;
     }
 }

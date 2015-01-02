@@ -79,7 +79,23 @@ public interface SshdSettingsInterface {
      */
     boolean isDevelopementMode();
 
+    /**
+     * 
+     * @return Factory to use for filtering.
+     */
     TcpipForwarderFactory getForwardingFactory();
 
+    /**
+     * 
+     * @return an implementation of {@link ForwardingFilter} that can be used to see if forwarding is allowed.
+     */
     ForwardingFilter getForwardingFilter();
+
+    /**
+     * This is used to determine what implementation of {@link ForwardingFilter}
+     * {@link SshdSettingsInterface#getForwardingFilter()} should return
+     * 
+     * @return
+     */
+    boolean isForwardingAllowed();
 }

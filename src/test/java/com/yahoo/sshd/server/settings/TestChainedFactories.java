@@ -15,9 +15,7 @@ package com.yahoo.sshd.server.settings;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.sshd.server.Command;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -57,7 +55,7 @@ public class TestChainedFactories {
         }
 
         SshdSettingsInterface sshdSettings =
-                        new SshdSettingsBuilder().setSshdPort(2222).setConfiguration(Mockito.mock(Configuration.class))
+                        new SshdSettingsBuilder().setSshdPort(2222).setConfiguration(Utils.getConfigMock())
                                         .setArtifactoryUsername("a").setArtifactoryPassword("password")
                                         .setArtifactoryUrl("http://your:4080/artifactory").setCommandFactories(cfList)
                                         .build();

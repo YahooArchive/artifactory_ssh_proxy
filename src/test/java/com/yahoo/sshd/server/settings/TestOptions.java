@@ -24,7 +24,10 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sshd.common.forward.DenyingTcpipForwarderFactory;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
+import com.yahoo.sshd.server.filters.DenyingForwardingFilter;
+import com.yahoo.sshd.server.filters.LocalForwardingFilter;
 import com.yahoo.sshd.server.filters.TestForwardingFilters;
+import com.yahoo.sshd.server.settings.SshdProxySettings.ShellMode;
 import com.yahoo.sshd.utils.RunnableComponent;
 
 @Test(groups = "unit")
@@ -32,12 +35,14 @@ public class TestOptions {
     @Test
     public void testDefault() throws SshdConfigurationException {
         // TODO: supposedly this test fails under windows.
-        // too lazy to check at this point, prob cause I wrote it a long time ago.
+        // too lazy to check at this point, prob cause I wrote it a long time
+        // ago.
         if (System.getProperty("os.name").startsWith("Windows")) {
             return;
         }
 
-        // tests set -Dsshd.propertiesFile=src/test/resources/sshd_proxy.properties
+        // tests set
+        // -Dsshd.propertiesFile=src/test/resources/sshd_proxy.properties
 
         SshdSettingsBuilder builder = new SshdSettingsBuilder(new String[] {});
         SshdSettingsInterface settings = builder.build();
@@ -52,7 +57,6 @@ public class TestOptions {
         RunnableComponent[] externalComponents = settings.getExternalComponents();
         Assert.assertEquals(externalComponents.length, 0);
 
-
         List<String> list = new ArrayList<>();
         for (DelegatingCommandFactory df : settings.getCfInstances()) {
             list.add(df.getClass().getCanonicalName());
@@ -65,12 +69,16 @@ public class TestOptions {
 
         // And the deny?
         Assert.assertTrue(settings.getForwardingFactory() instanceof DenyingTcpipForwarderFactory);
+
+        // default forwarding is off.
+        Assert.assertFalse(settings.isForwardingAllowed());
     }
 
     @Test(enabled = false)
     public void testEnableJetty() throws SshdConfigurationException {
         // TODO: supposedly this test fails under windows.
-        // too lazy to check at this point, prob cause I wrote it a long time ago.
+        // too lazy to check at this point, prob cause I wrote it a long time
+        // ago.
         if (System.getProperty("os.name").startsWith("Windows")) {
             return;
         }
@@ -88,7 +96,6 @@ public class TestOptions {
         // We expect jetty to be disabled by default.
         RunnableComponent[] externalComponents = settings.getExternalComponents();
         Assert.assertEquals(externalComponents.length, 0);
-
 
         List<String> list = new ArrayList<>();
         for (DelegatingCommandFactory df : settings.getCfInstances()) {
@@ -136,7 +143,8 @@ public class TestOptions {
     @Test(dataProvider = "roots")
     public void testRoot(String input, String expected) {
         // we can assume ROOT is set in the env.
-        // later we can play games and configure surefire to test different roots.
+        // later we can play games and configure surefire to test different
+        // roots.
         // TODO: remove check for ROOT from env.
         SshdSettingsBuilder sb = new SshdSettingsBuilder();
         Assert.assertEquals(sb.findRoot(input), expected);
@@ -160,11 +168,33 @@ public class TestOptions {
         Assert.assertEquals(sb.getSystemNameDir(), "/sshd_proxy/");
     }
 
-
     @Test
     public void testAuthDir() {
         SshdSettingsBuilder sb = new SshdSettingsBuilder();
         Assert.assertEquals(sb.getAuthDir(), "src/test/resources/conf/sshd_proxy/auth/");
     }
 
+
+    @SuppressWarnings("boxing")
+    @DataProvider
+    public Object[][] shells() {
+        return new Object[][] {//
+        //
+                        {ShellMode.MESSAGE, false, DenyingForwardingFilter.class},//
+                        {ShellMode.FORWARDING_ECHO_SHELL, true, LocalForwardingFilter.class},//
+        };
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Test(dataProvider = "shells")
+    public void testForwarding(ShellMode shellMode, boolean forwardingAllowed, Class c)
+                    throws SshdConfigurationException {
+        SshdSettingsBuilder builder = new SshdSettingsBuilder(new String[] {});
+        builder.setSetShellMode(shellMode);
+
+        SshdSettingsInterface settings = builder.build();
+
+        Assert.assertEquals(settings.isForwardingAllowed(), forwardingAllowed);
+        Assert.assertTrue(c.isInstance(settings.getForwardingFilter()));
+    }
 }
