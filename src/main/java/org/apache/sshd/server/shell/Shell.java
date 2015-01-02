@@ -20,12 +20,14 @@ import java.io.OutputStream;
 import org.apache.sshd.server.Environment;
 
 import com.yahoo.sshd.server.shell.ForwardingShellWrapper;
+import com.yahoo.sshd.server.shell.GroovyShellWrapper;
 
 /**
  * This is a mirror of {@link org.apache.sshd.server.shell.InvertedShell}, which doesn't have inverted streams. This is
  * for when you are hooking a shell up to an input/outputstream consuming code block instead of launching a process.
  * 
- * This interface is meant to be used with {@link ForwardingShellWrapper} class as an implementation of
+ * This interface is meant to be used with {@link ForwardingShellWrapper} or {@link GroovyShellWrapper} as an
+ * implementation of {@link org.apache.sshd.common.Factory<Command>}.
  * {@link org.apache.sshd.common.Factory<Command>}.
  * 
  * @author <a href="mailto:dev@mina.apache.org">Apache MINA SSHD Project</a>

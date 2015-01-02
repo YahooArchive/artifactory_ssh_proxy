@@ -182,6 +182,7 @@ public class TestOptions {
         //
                         {ShellMode.MESSAGE, false, DenyingForwardingFilter.class},//
                         {ShellMode.FORWARDING_ECHO_SHELL, true, LocalForwardingFilter.class},//
+                        {ShellMode.GROOVY_SHELL, false, DenyingForwardingFilter.class},//
         };
     }
 
