@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.Map;
 
@@ -43,7 +43,7 @@ import com.yahoo.sshd.utils.streams.MessageOutputStream;
  */
 
 /**
- * Derived from ProcessShellFactory When someone ssh's in this should display a configurable message.
+ * Derived from ProcessShellFactory. When someone ssh's in this should display a configurable message.
  * 
  * The message is displayed by the MessageOutputStream, but this factory takes care of reading the file and caching the
  * string.
@@ -59,7 +59,7 @@ public class MessageShellFactory extends ProcessShellFactory {
 
     public MessageShellFactory(String message) {
         super(new String[] {}, EnumSet.of(ProcessShellFactory.TtyOptions.ONlCr));
-        this.messageBytes = message.getBytes(Charset.forName("UTF-8"));
+        this.messageBytes = message.getBytes(StandardCharsets.UTF_8);
     }
 
     public MessageShellFactory(File messageFile) throws IOException {
@@ -81,7 +81,7 @@ public class MessageShellFactory extends ProcessShellFactory {
                 messageBuilder.append(line);
             }
 
-            this.messageBytes = messageBuilder.toString().getBytes(Charset.forName("UTF-8"));
+            this.messageBytes = messageBuilder.toString().getBytes(StandardCharsets.UTF_8);
         }
     }
 
@@ -94,6 +94,7 @@ public class MessageShellFactory extends ProcessShellFactory {
         return new MessageShell();
     }
 
+    // FIXME: probably doesn't need to extend ProcessShell, or InvertedShell,
     final class MessageShell extends ProcessShell implements InvertedShell, Runnable {
         private final TtyFilterOutputStream in;
         private final TtyFilterInputStream out;
@@ -128,11 +129,7 @@ public class MessageShellFactory extends ProcessShellFactory {
 
         @Override
         public boolean isAlive() {
-            try {
-                return false;
-            } catch (IllegalThreadStateException e) {
-                return true;
-            }
+            return false;
         }
 
         @Override

@@ -14,6 +14,7 @@ package com.yahoo.sshd.utils.streams;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Simply outputs a static message. This is used for when someone ssh's to a box to make sure that they can verify
@@ -29,7 +30,7 @@ public class MessageOutputStream extends InputStream {
     private int lastMark = 0;
 
     public MessageOutputStream(String message) {
-        this(message.getBytes(Charset.forName("UTF-8")));
+        this(message.getBytes(StandardCharsets.UTF_8));
     }
 
     public MessageOutputStream(byte[] messageBytes) {

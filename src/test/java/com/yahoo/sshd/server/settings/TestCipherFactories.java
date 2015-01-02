@@ -15,10 +15,8 @@ package com.yahoo.sshd.server.settings;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.sshd.common.Cipher;
 import org.apache.sshd.common.NamedFactory;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -33,7 +31,7 @@ public class TestCipherFactories {
         // arcfour's aren't working on 7u45
 
         SshdSettingsInterface settings =
-                        new SshdSettingsBuilder().setSshdPort(2222).setConfiguration(Mockito.mock(Configuration.class))
+                        new SshdSettingsBuilder().setSshdPort(2222).setConfiguration(Utils.getConfigMock())
                                         .setArtifactoryUsername("a").setArtifactoryPassword("password")
                                         .setArtifactoryUrl("http://your:4080/artifactory")
                                         .setCommandFactories(Collections.<DelegatingCommandFactory>emptyList()).build();
