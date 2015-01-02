@@ -53,6 +53,7 @@ import com.yahoo.sshd.server.Sshd;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.filters.DenyingForwardingFilter;
 import com.yahoo.sshd.server.shell.ForwardingShellFactory;
+import com.yahoo.sshd.server.shell.GroovyShellFactory;
 import com.yahoo.sshd.server.shell.MessageShellFactory;
 import com.yahoo.sshd.server.shell.SshProxyMessage;
 import com.yahoo.sshd.tools.artifactory.ArtifactoryInformation;
@@ -73,7 +74,12 @@ public class SshdProxySettings implements SshdSettingsInterface {
         /**
          * Use {@link ForwardingShellFactory} to create a shell which echo's input back, but also allows forwarding.
          */
-        FORWARDING_ECHO_SHELL
+        FORWARDING_ECHO_SHELL,
+
+        /**
+         * Use {@link GroovyShellFactory} to create a shell supports groovy
+         */
+        GROOVY_SHELL
     }
 
     /**
@@ -255,7 +261,6 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
     @Override
     public Factory<Command> getShellFactory() {
-
         EnumSet<TtyOptions> ttyOptions;
 
         if (OsUtils.isUNIX()) {
@@ -277,14 +282,15 @@ public class SshdProxySettings implements SshdSettingsInterface {
             case FORWARDING_ECHO_SHELL:
                 return new ForwardingShellFactory(ttyOptions);
 
+            case GROOVY_SHELL:
+                return new GroovyShellFactory(ttyOptions);
+
             case MESSAGE:
             default:
                 // TODO when separating out settings, we'll provide a different success
                 // message, or a file path for it.
                 return new MessageShellFactory(SshProxyMessage.MESSAGE_STRING);
-
         }
-
     }
 
     @Override

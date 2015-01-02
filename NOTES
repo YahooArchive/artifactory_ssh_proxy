@@ -36,4 +36,4 @@ WWW-Authenticate: Basic realm="nmrs_m7VKmomQ2YM3:"
 
 So we need at a minimum a buffer of WWW-Authenticate: size, and if we read WWW-AuthFoo, then we can write that buffer, and the rest of the following bits, while the previous writes would have been no-ops causing latency.
 
-Worse, yet we need a secondary buffer which is looking for the \r\n\r\n ala cheap-alive, and we need to eat that and write out our auth bits.
+Worse, yet we need a secondary buffer which is looking for the \r\n\r\n ala cheap-alive, and we need to eat that and write out our auth bits, then write the \r\n\r\n
