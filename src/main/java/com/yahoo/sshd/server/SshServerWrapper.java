@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.yahoo.sshd.authorization.ArtifactoryAuthorizerProviderFactory;
+import com.yahoo.sshd.common.forward.DenyingTcpipForwarder;
+import com.yahoo.sshd.common.forward.DenyingTcpipForwarderFactory;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.configuration.DenyingForwardingFilter;
 import com.yahoo.sshd.server.filesystem.InjectableArtifactoryFileSystemFactory;
@@ -106,7 +108,12 @@ public class SshServerWrapper implements Runnable, Closeable {
         // DENY all ssh forwarding.
         sshd.setTcpipForwardingFilter(new DenyingForwardingFilter());
 
-        sshd.setTcpipForwarderFactory(new DefaultTcpipForwarderFactory());
+        /**
+         * This deny's all REMOTE forwards. -Rport:host:port
+         * 
+         * It DOES NOT deny LOCAL forwards, -Lport:host:port, the forwarding filter does that.
+         */
+        sshd.setTcpipForwarderFactory(new DenyingTcpipForwarderFactory());
 
         // explicitly disable all auth except pkauth see
         // org.apache.sshd.SshServer.checkConfig()
