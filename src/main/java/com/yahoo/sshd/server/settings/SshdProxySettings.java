@@ -91,6 +91,9 @@ public class SshdProxySettings implements SshdSettingsInterface {
     protected final String artifactoryAuthorizationFilePath;
     protected final String requestLogFilePath;
 
+    /**
+     * True if in development mode, this is used for running locally to skip extra setup of auth.
+     */
     protected final boolean developmentMode;
 
     public SshdProxySettings(SshdSettingsBuilder b) throws SshdConfigurationException {
