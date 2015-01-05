@@ -17,6 +17,8 @@ import org.apache.sshd.common.ForwardingFilter;
 import org.apache.sshd.common.Session;
 import org.apache.sshd.common.SshdSocketAddress;
 import org.apache.sshd.server.session.ServerSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class exists to deny all sorts of forwarding.
@@ -27,30 +29,49 @@ import org.apache.sshd.server.session.ServerSession;
  * 
  */
 public class DenyingForwardingFilter implements ForwardingFilter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DenyingForwardingFilter.class);
+
     public boolean canForwardAgent(ServerSession session) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Agent forwarding requested for {}", session);
+        }
+
         return false;
     }
 
     @Override
-    public boolean canForwardX11(Session arg0) {
+    public boolean canForwardX11(Session session) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("X11 forwarding requested for {}", session);
+        }
+
         return false;
     }
 
     @Override
-    public boolean canListen(SshdSocketAddress arg0, Session arg1) {
+    public boolean canListen(SshdSocketAddress socketAddress, Session session) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Listen forwarding requested from {} for {}", socketAddress, session);
+        }
+
         return false;
     }
 
     @Override
-    public boolean canConnect(SshdSocketAddress arg0, Session arg1) {
+    public boolean canConnect(SshdSocketAddress socketAddress, Session session) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Connect forwarding requested from {} for {}", socketAddress, session);
+        }
+
         return false;
     }
 
     @Override
-    public boolean canForwardAgent(Session arg0) {
+    public boolean canForwardAgent(Session session) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Agent forwarding requested for {}", session);
+        }
+
         return false;
     }
-
-
-
 }
