@@ -22,7 +22,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.yahoo.sshd.common.forward.DenyingTcpipForwarderFactory;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
+import com.yahoo.sshd.server.filters.TestForwardingFilters;
 import com.yahoo.sshd.utils.RunnableComponent;
 
 @Test(groups = "unit")
@@ -57,6 +59,12 @@ public class TestOptions {
         }
 
         Assert.assertEquals(list, SshdSettingsBuilder.DEFAULT_COMMAND_FACTORIES);
+
+        // We expect the filters to be denied by default.
+        TestForwardingFilters.testDenyFilter(settings.getForwardingFilter());
+
+        // And the deny?
+        Assert.assertTrue(settings.getForwardingFactory() instanceof DenyingTcpipForwarderFactory);
     }
 
     @Test(enabled = false)
