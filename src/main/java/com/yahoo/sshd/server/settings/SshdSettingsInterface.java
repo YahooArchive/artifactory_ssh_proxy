@@ -17,7 +17,9 @@ import java.util.List;
 
 import org.apache.sshd.common.Cipher;
 import org.apache.sshd.common.Factory;
+import org.apache.sshd.common.ForwardingFilter;
 import org.apache.sshd.common.NamedFactory;
+import org.apache.sshd.common.TcpipForwarderFactory;
 import org.apache.sshd.server.Command;
 
 import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
@@ -76,4 +78,8 @@ public interface SshdSettingsInterface {
      * @return true if we are in development mode.
      */
     boolean isDevelopementMode();
+
+    TcpipForwarderFactory getForwardingFactory();
+
+    ForwardingFilter getForwardingFilter();
 }

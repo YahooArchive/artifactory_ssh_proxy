@@ -26,7 +26,9 @@ import java.util.concurrent.CountDownLatch;
 
 import org.apache.sshd.common.Cipher;
 import org.apache.sshd.common.Factory;
+import org.apache.sshd.common.ForwardingFilter;
 import org.apache.sshd.common.NamedFactory;
+import org.apache.sshd.common.TcpipForwarderFactory;
 import org.apache.sshd.common.cipher.AES128CBC;
 import org.apache.sshd.common.cipher.AES128CTR;
 import org.apache.sshd.common.cipher.AES192CBC;
@@ -43,8 +45,10 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
 import com.yahoo.sshd.authentication.file.HomeDirectoryScanningPKAuthenticator;
 import com.yahoo.sshd.authentication.file.LocalUserPKAuthenticator;
+import com.yahoo.sshd.common.forward.DenyingTcpipForwarderFactory;
 import com.yahoo.sshd.server.Sshd;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
+import com.yahoo.sshd.server.filters.DenyingForwardingFilter;
 import com.yahoo.sshd.server.shell.MessageShellFactory;
 import com.yahoo.sshd.server.shell.SshProxyMessage;
 import com.yahoo.sshd.tools.artifactory.ArtifactoryInformation;
@@ -365,5 +369,20 @@ public class SshdProxySettings implements SshdSettingsInterface {
     @Override
     public boolean isDevelopementMode() {
         return developmentMode;
+    }
+
+    @Override
+    public TcpipForwarderFactory getForwardingFactory() {
+        /**
+         * This deny's all REMOTE forwards. -Rport:host:port
+         * 
+         * It DOES NOT deny LOCAL forwards, -Lport:host:port, the forwarding filter does that.
+         */
+        return new DenyingTcpipForwarderFactory();
+    }
+
+    @Override
+    public ForwardingFilter getForwardingFilter() {
+        return new DenyingForwardingFilter();
     }
 }

@@ -29,11 +29,10 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.yahoo.sshd.authorization.ArtifactoryAuthorizerProviderFactory;
-import com.yahoo.sshd.common.forward.DenyingTcpipForwarder;
 import com.yahoo.sshd.common.forward.DenyingTcpipForwarderFactory;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
-import com.yahoo.sshd.server.configuration.DenyingForwardingFilter;
 import com.yahoo.sshd.server.filesystem.InjectableArtifactoryFileSystemFactory;
+import com.yahoo.sshd.server.filters.DenyingForwardingFilter;
 import com.yahoo.sshd.server.logging.RequestLogFactory;
 import com.yahoo.sshd.server.logging.SshRequestLog;
 import com.yahoo.sshd.server.settings.SshdConfigurationException;
@@ -106,14 +105,8 @@ public class SshServerWrapper implements Runnable, Closeable {
         sshd.setCommandFactory(settings.getCommandFactory());
 
         // DENY all ssh forwarding.
-        sshd.setTcpipForwardingFilter(new DenyingForwardingFilter());
-
-        /**
-         * This deny's all REMOTE forwards. -Rport:host:port
-         * 
-         * It DOES NOT deny LOCAL forwards, -Lport:host:port, the forwarding filter does that.
-         */
-        sshd.setTcpipForwarderFactory(new DenyingTcpipForwarderFactory());
+        sshd.setTcpipForwardingFilter(settings.getForwardingFilter());
+        sshd.setTcpipForwarderFactory(settings.getForwardingFactory());
 
         // explicitly disable all auth except pkauth see
         // org.apache.sshd.SshServer.checkConfig()
