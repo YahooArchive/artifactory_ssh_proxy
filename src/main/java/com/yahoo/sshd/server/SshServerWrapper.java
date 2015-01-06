@@ -21,7 +21,6 @@ import java.util.concurrent.CountDownLatch;
 
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
-import org.apache.sshd.common.forward.DefaultTcpipForwarderFactory;
 import org.apache.sshd.server.keyprovider.PEMHostKeyProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +28,8 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.yahoo.sshd.authorization.ArtifactoryAuthorizerProviderFactory;
-import com.yahoo.sshd.common.forward.DenyingTcpipForwarderFactory;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.filesystem.InjectableArtifactoryFileSystemFactory;
-import com.yahoo.sshd.server.filters.DenyingForwardingFilter;
 import com.yahoo.sshd.server.logging.RequestLogFactory;
 import com.yahoo.sshd.server.logging.SshRequestLog;
 import com.yahoo.sshd.server.settings.SshdConfigurationException;

@@ -12,25 +12,14 @@
  */
 package com.yahoo.sshd.authorization.file;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.apache.sshd.common.Cipher;
-import org.apache.sshd.common.Factory;
-import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.server.Command;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.yahoo.sshd.authentication.MultiUserPKAuthenticator;
 import com.yahoo.sshd.authorization.ArtifactoryPermTargetType;
-import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.settings.SshdSettingsInterface;
-import com.yahoo.sshd.tools.artifactory.ArtifactoryInformation;
-import com.yahoo.sshd.utils.RunnableComponent;
 
 @Test(groups = "unit")
 public class TestArtifactoryAuthorization {
