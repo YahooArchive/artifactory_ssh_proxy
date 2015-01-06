@@ -19,8 +19,6 @@ import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sshd.server.filters.DenyingForwardingFilter;
-
 
 @Test(groups = "unit")
 public class TestForwardingFilters {

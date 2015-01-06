@@ -16,12 +16,12 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 
+import javax.crypto.interfaces.DHPublicKey;
+import javax.crypto.spec.DHParameterSpec;
+
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import javax.crypto.interfaces.DHPublicKey;
-import javax.crypto.spec.DHParameterSpec;
 
 public class TestDH {
     @SuppressWarnings("boxing")

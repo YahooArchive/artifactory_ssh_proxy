@@ -25,6 +25,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.TimeZone;
 
+import org.eclipse.jetty.server.RequestLog;
+import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

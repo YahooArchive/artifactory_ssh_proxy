@@ -22,6 +22,7 @@ package com.yahoo.sshd.server.logging;
 import java.io.IOException;
 import java.util.Locale;
 
+import org.eclipse.jetty.server.RequestLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
