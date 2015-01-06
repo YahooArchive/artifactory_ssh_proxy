@@ -12,6 +12,9 @@
  */
 package com.yahoo.sshd.tools.artifactory;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.jfrog.artifactory.client.ning.NingRequest;
 
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
@@ -33,13 +36,21 @@ import com.yahoo.sshd.server.settings.SshdProxySettings;
  */
 public class ArtifactoryInformation {
     private final String artifactoryUrl;
+    private final String artifactoryHost;
+    private final int artifactoryPort;
     private final String artifactoryUsername;
     private final char[] artifactoryPassword;
 
-    public ArtifactoryInformation(String artifactoryUrl, String artifactoryUsername, String artifactoryPassword) {
+    public ArtifactoryInformation(String artifactoryUrl, String artifactoryUsername, String artifactoryPassword)
+                    throws MalformedURLException {
         this.artifactoryUrl = artifactoryUrl;
         this.artifactoryUsername = artifactoryUsername;
         this.artifactoryPassword = (null != artifactoryPassword) ? artifactoryPassword.toCharArray() : null;
+
+        // need to parse the url to get the host and port.
+        URL url = new URL(artifactoryUrl);
+        artifactoryHost = url.getHost();
+        artifactoryPort = url.getPort();
     }
 
     public String getArtifactoryUrl() {
@@ -52,6 +63,14 @@ public class ArtifactoryInformation {
 
     public char[] getArtifactoryPassword() {
         return artifactoryPassword;
+    }
+
+    public String getArtifactoryHost() {
+        return artifactoryHost;
+    }
+
+    public int getArtifactoryPort() {
+        return artifactoryPort;
     }
 
     @Override
@@ -101,7 +120,7 @@ public class ArtifactoryInformation {
     }
 
     /**
-     * Override this to return a NingRequest that automatically adds headers or any other informatnion you need to pass.
+     * Override this to return a NingRequest that automatically adds headers or any other information you need to pass.
      * 
      * @return
      */
@@ -110,7 +129,7 @@ public class ArtifactoryInformation {
     }
 
     /**
-     * If you need to pass other headers or cookies to artifactory you'll want to sublcass this, and have
+     * If you need to pass other headers or cookies to artifactory you'll want to subclass this, and have
      * {@link ArtifactoryInformation#createNingRequest()} return an instance of your subclass
      * 
      * @author areese

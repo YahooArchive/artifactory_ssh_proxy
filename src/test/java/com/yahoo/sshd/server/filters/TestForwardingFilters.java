@@ -17,8 +17,8 @@ import org.apache.sshd.common.Session;
 import org.apache.sshd.common.SshdSocketAddress;
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
 
 @Test(groups = "unit")
 public class TestForwardingFilters {
@@ -27,9 +27,21 @@ public class TestForwardingFilters {
         testDenyFilter(new DenyingForwardingFilter());
     }
 
-    @Test
-    public void testLocalForward() {
-        testLocalForwardFilter(new LocalForwardingFilter());
+    @SuppressWarnings("boxing")
+    @DataProvider
+    public Object[][] hosts() {
+        return new Object[][] {//
+        //
+                        {"test", 10, "test", 10, true},//
+                        {"test", 10, "test", 11, false},//
+                        {"test", 10, "testA", 10, false},//
+                        {"test", 10, "testA", 11, false},//
+        };
+    }
+
+    @Test(dataProvider = "hosts")
+    public void testLocalForward(String inHost, int inPort, String compareHost, int comparePort, boolean expected) {
+        testLocalForwardFilter(new LocalForwardingFilter(inHost, inPort), compareHost, comparePort, expected);
     }
 
     /**
@@ -53,14 +65,17 @@ public class TestForwardingFilters {
      * 
      * @param filter
      */
+    @SuppressWarnings("boxing")
     @Test(enabled = false)
-    public static void testLocalForwardFilter(ForwardingFilter filter) {
+    public static void testLocalForwardFilter(ForwardingFilter filter, String hostname, int port, boolean expected) {
         Session session = Mockito.mock(Session.class);
         SshdSocketAddress address = Mockito.mock(SshdSocketAddress.class);
+        Mockito.when(address.getHostName()).thenReturn(hostname);
+        Mockito.when(address.getPort()).thenReturn(port);
 
         Assert.assertFalse(filter.canForwardAgent(session));
         Assert.assertFalse(filter.canForwardX11(session));
         Assert.assertFalse(filter.canListen(address, session));
-        Assert.assertTrue(filter.canConnect(address, session));
+        Assert.assertEquals(filter.canConnect(address, session), expected);
     }
 }

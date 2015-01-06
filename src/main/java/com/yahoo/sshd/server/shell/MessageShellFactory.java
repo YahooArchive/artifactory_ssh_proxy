@@ -36,14 +36,13 @@ import com.yahoo.sshd.utils.streams.EmptyInputStream;
 import com.yahoo.sshd.utils.streams.EmptyOutputStream;
 import com.yahoo.sshd.utils.streams.MessageOutputStream;
 
-/**
- * A {@link Factory} of {@link Command} that will create a new process and bridge the streams.
- * 
- * @author <a href="mailto:dev@mina.apache.org">Apache MINA SSHD Project</a>
- */
 
 /**
- * Derived from ProcessShellFactory When someone ssh's in this should display a configurable message.
+ * Derived from {@link org.apache.sshd.server.shell.ProcessShellFactory}.
+ * 
+ * A {@link org.apache.sshd.common.Factory<Command>} of {@link org.apache.sshd.server.Command} that will display a
+ * configurable message.
+ * 
  * 
  * The message is displayed by the MessageOutputStream, but this factory takes care of reading the file and caching the
  * string.
@@ -94,6 +93,7 @@ public class MessageShellFactory extends ProcessShellFactory {
         return new MessageShell();
     }
 
+    // FIXME: probably doesn't need to extend ProcessShell, or InvertedShell,
     final class MessageShell extends ProcessShell implements InvertedShell, Runnable {
         private final TtyFilterOutputStream in;
         private final TtyFilterInputStream out;

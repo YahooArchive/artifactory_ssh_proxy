@@ -14,10 +14,12 @@ package com.yahoo.sshd.server.settings;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +40,9 @@ import org.apache.sshd.common.cipher.ARCFOUR128;
 import org.apache.sshd.common.cipher.ARCFOUR256;
 import org.apache.sshd.common.cipher.BlowfishCBC;
 import org.apache.sshd.common.cipher.TripleDESCBC;
+import org.apache.sshd.common.util.OsUtils;
 import org.apache.sshd.server.Command;
+import org.apache.sshd.server.shell.ProcessShellFactory.TtyOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +53,8 @@ import com.yahoo.sshd.common.forward.DenyingTcpipForwarderFactory;
 import com.yahoo.sshd.server.Sshd;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.filters.DenyingForwardingFilter;
+import com.yahoo.sshd.server.filters.LocalForwardingFilter;
+import com.yahoo.sshd.server.shell.ForwardingShellFactory;
 import com.yahoo.sshd.server.shell.MessageShellFactory;
 import com.yahoo.sshd.server.shell.SshProxyMessage;
 import com.yahoo.sshd.tools.artifactory.ArtifactoryInformation;
@@ -56,6 +62,21 @@ import com.yahoo.sshd.utils.RunnableComponent;
 
 public class SshdProxySettings implements SshdSettingsInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(SshdProxySettings.class);
+
+    /**
+     * Type of shell that gets created when someone ssh's in.
+     */
+    public static enum ShellMode {
+        /**
+         * Use {@link MessageShellFactory} to create a shell that simply presents a message.
+         */
+        MESSAGE,
+
+        /**
+         * Use {@link ForwardingShellFactory} to create a shell which echo's input back, but also allows forwarding.
+         */
+        FORWARDING_ECHO_SHELL
+    }
 
     /**
      * The port the ssh server listens on.
@@ -96,6 +117,11 @@ public class SshdProxySettings implements SshdSettingsInterface {
      */
     protected final boolean developmentMode;
 
+    /**
+     * Type of shell that gets created when someone ssh's in.
+     */
+    protected final ShellMode shellMode;
+
     public SshdProxySettings(SshdSettingsBuilder b) throws SshdConfigurationException {
 
         this.port = b.getSshdPort();
@@ -107,9 +133,13 @@ public class SshdProxySettings implements SshdSettingsInterface {
         String artifactoryUsername = b.getArtifactoryUsername();
         String artifactoryPassword = b.getArtifactoryPassword();
 
-        this.artifactoryInfo =
-                        createArtifactoryInformation(b.getArtifactoryUrl(), b.getArtifactoryUsername(),
-                                        b.getArtifactoryPassword());
+        try {
+            this.artifactoryInfo =
+                            createArtifactoryInformation(b.getArtifactoryUrl(), b.getArtifactoryUsername(),
+                                            b.getArtifactoryPassword());
+        } catch (MalformedURLException e) {
+            throw new SshdConfigurationException(e);
+        }
 
         RunnableComponent[] temp = b.getExternalComponents();
         this.externalComponents = Arrays.copyOf(temp, temp.length);
@@ -134,6 +164,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
         }
 
         this.developmentMode = b.getDevelopmentMode();
+
+        this.shellMode = b.getShellMode();
     }
 
     /**
@@ -145,9 +177,10 @@ public class SshdProxySettings implements SshdSettingsInterface {
      * @param artifactoryUsername
      * @param artifactoryPassword
      * @return
+     * @throws MalformedURLException if artifactoryUrl is invalid
      */
     protected ArtifactoryInformation createArtifactoryInformation(final String artifactoryUrl,
-                    final String artifactoryUsername, final String artifactoryPassword) {
+                    final String artifactoryUsername, final String artifactoryPassword) throws MalformedURLException {
         return new ArtifactoryInformation(artifactoryUrl, artifactoryUsername, artifactoryPassword);
     }
 
@@ -229,9 +262,36 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
     @Override
     public Factory<Command> getShellFactory() {
-        // TODO when separating out settings, we'll provide a different success
-        // message, or a file path for it.
-        return new MessageShellFactory(SshProxyMessage.MESSAGE_STRING);
+
+        EnumSet<TtyOptions> ttyOptions;
+
+        if (OsUtils.isUNIX()) {
+            /**
+             * org.apache.sshd.server.shell.ProcessShellFactory does this: ttyOptions = EnumSet.of(TtyOptions.ONlCr);
+             * 
+             * However, it doesn't seem to work for me. So in our copy of
+             * org.apache.sshd.server.shell.TtyFilterOutputStream.TtyFilterOutputStream(EnumSet<TtyOptions>,
+             * OutputStream, TtyFilterInputStream), we have a special hack that if TtyOptions.INlCr and TtyOptions.ICrNl
+             * are both set, send cr nl instead. no idea if the windows even works.
+             */
+            // ttyOptions = EnumSet.of(TtyOptions.ONlCr);
+            ttyOptions = EnumSet.of(TtyOptions.OCrNl, TtyOptions.INlCr, TtyOptions.ICrNl);
+        } else {
+            ttyOptions = EnumSet.of(TtyOptions.Echo, TtyOptions.OCrNl, TtyOptions.INlCr, TtyOptions.ICrNl);
+        }
+
+        switch (shellMode) {
+            case FORWARDING_ECHO_SHELL:
+                return new ForwardingShellFactory(ttyOptions);
+
+            case MESSAGE:
+            default:
+                // TODO when separating out settings, we'll provide a different success
+                // message, or a file path for it.
+                return new MessageShellFactory(SshProxyMessage.MESSAGE_STRING);
+
+        }
+
     }
 
     @Override
@@ -386,6 +446,25 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
     @Override
     public ForwardingFilter getForwardingFilter() {
-        return new DenyingForwardingFilter();
+        if (isForwardingAllowed()) {
+            return new LocalForwardingFilter(artifactoryInfo.getArtifactoryHost(), artifactoryInfo.getArtifactoryPort());
+        } else {
+            return new DenyingForwardingFilter();
+        }
+    }
+
+    @Override
+    public boolean isForwardingAllowed() {
+        switch (shellMode) {
+            case FORWARDING_ECHO_SHELL:
+                return true;
+
+            case MESSAGE:
+                return false;
+
+            default:
+                return false;
+        }
+
     }
 }

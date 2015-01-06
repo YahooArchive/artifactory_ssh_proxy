@@ -28,11 +28,39 @@ import org.slf4j.LoggerFactory;
  */
 public class LocalForwardingFilter extends DenyingForwardingFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalForwardingFilter.class);
+    private final String toHost;
+    private final int toPort;
+
+    public LocalForwardingFilter(String toHost, int toPort) {
+        this.toHost = toHost.toLowerCase();
+        this.toPort = toPort;
+    }
 
     @Override
     public boolean canConnect(SshdSocketAddress socketAddress, Session session) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Connect forwarding requested from {} for {}", socketAddress, session);
+        }
+
+        // we don't want to allow forwards to just anywhere, we only allow them to the artifactory host.
+        int sp = socketAddress.getPort();
+        if (sp != toPort) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Denying forwarding requested from {} for {} tohost {} toPort {}", socketAddress, session,
+                                toHost, Integer.valueOf(toPort));
+            }
+
+            return false;
+        }
+
+        String spHost = socketAddress.getHostName().toLowerCase();
+        if (!toHost.equals(spHost)) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Denying forwarding requested from {} for {} tohost {} toPort {}", socketAddress, session,
+                                toHost, Integer.valueOf(toPort));
+            }
+
+            return false;
         }
 
         return true;
