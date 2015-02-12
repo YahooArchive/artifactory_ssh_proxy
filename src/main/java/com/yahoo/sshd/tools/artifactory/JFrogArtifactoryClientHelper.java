@@ -53,16 +53,7 @@ public class JFrogArtifactoryClientHelper {
     // FIXME: need to inject NingRequestImpl
     public JFrogArtifactoryClientHelper(final ArtifactoryInformation afInfo, final String repositoryName) {
         this.repositoryName = repositoryName;
-
-        // TODO: we may need a new method or child class of Artifactory ning
-        // client
-        // which doesn't require bouncer username/password
-        // TODO: we may need a new headless user for ssh proxy to access
-        // artifactory
-        // use headless bouncer user, leave password empty now just to satisfy
-        // method signature
         this.afClient = createAfClient(afInfo);
-
         this.repository = afClient.repository(this.repositoryName);
     }
 

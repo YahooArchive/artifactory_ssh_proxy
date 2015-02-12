@@ -15,6 +15,8 @@ package com.yahoo.sshd.server;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import javax.annotation.Nonnull;
+
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
@@ -51,7 +53,7 @@ public class Sshd implements Daemon, Runnable {
      * @param args
      * @throws SshdConfigurationException
      */
-    public Sshd(final String[] args) throws SshdConfigurationException {
+    public Sshd(@Nonnull final String[] args) throws SshdConfigurationException {
         this.args = args;
         setup();
     }

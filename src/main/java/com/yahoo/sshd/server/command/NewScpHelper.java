@@ -19,12 +19,16 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.annotation.Nonnull;
 
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.common.file.FileSystemView;
 import org.apache.sshd.common.file.SshFile;
 import org.apache.sshd.common.scp.ScpHelper;
 import org.apache.sshd.common.util.DirectoryScanner;
+import org.apache.sshd.server.Environment;
 
 import com.yahoo.sshd.server.filesystem.ArtifactorySshFile;
 import com.yahoo.sshd.server.filesystem.NameLengthTuple;
@@ -45,11 +49,16 @@ import com.yahoo.sshd.tools.artifactory.ArtifactoryNoWritePermissionException;
  */
 public class NewScpHelper extends ScpHelper {
     private final LoggingHelper loggingHelper;
+    private final Environment env;
+    private Map<String, String> envToAfPropertyMapping;
 
-    public NewScpHelper(final InputStream in, final OutputStream out, final FileSystemView root,
-                    final LoggingHelper loggingHelper) {
+    public NewScpHelper(@Nonnull final InputStream in, @Nonnull final OutputStream out,
+                    @Nonnull final FileSystemView root, final LoggingHelper loggingHelper, @Nonnull Environment env,
+                    @Nonnull Map<String, String> envToAfPropertyMapping) {
         super(in, out, root);
         this.loggingHelper = loggingHelper;
+        this.env = env;
+        this.envToAfPropertyMapping = envToAfPropertyMapping;
     }
 
     @Override
@@ -189,6 +198,9 @@ public class NewScpHelper extends ScpHelper {
 
         resetArtifactorySshFileSize(file, nameLength.getLength());
 
+        // add things from our env.
+        addEnvProperties(file);
+
         writeFileToDisk(file, nameLength);
 
         if (preserve) {
@@ -291,6 +303,34 @@ public class NewScpHelper extends ScpHelper {
             throw new ArtifactoryNoWritePermissionException("User does not have write permission for file: " + file);
         }
         return file;
+    }
+
+    public void doLogging(Throwable e, String path) {
+        loggingHelper.doLogging(e, path);
+    }
+
+    private void addEnvProperties(SshFile file) {
+        if (file instanceof ArtifactorySshFile) {
+            if (log.isDebugEnabled()) {
+            }
+
+            Map<String, String> afProperties = new HashMap<>();
+            // for every property in the env we need to translate it.
+            for (Entry<String, String> e : env.getEnv().entrySet()) {
+                String value = e.getValue();
+                if (null == value || value.isEmpty()) {
+                    continue;
+                }
+
+                String envName = e.getKey();
+                String propertyName = envToAfPropertyMapping.get(envName);
+                if (null != propertyName && !propertyName.isEmpty()) {
+                    afProperties.put(propertyName, value);
+                }
+            }
+
+            ((ArtifactorySshFile) file).setProperties(afProperties);
+        }
     }
 
 }

@@ -13,6 +13,10 @@
 /* Some portions of this code are Copyright (c) 2014, Yahoo! Inc. All rights reserved. */
 package com.yahoo.sshd.server.command;
 
+import java.io.IOException;
+import java.util.Map;
+
+import org.apache.sshd.server.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +39,8 @@ public class NewScpCommand extends AbstractScpCommand {
     protected static final Logger LOGGER = LoggerFactory.getLogger(NewScpCommand.class);
     private final SshRequestLog requestLog;
 
-    public NewScpCommand(String args, SshRequestLog requestLog) {
-        super(args);
+    public NewScpCommand(String args, SshRequestLog requestLog, Map<String, String> envToAfPropertyMapping) {
+        super(args, envToAfPropertyMapping);
         this.requestLog = requestLog;
     }
 
@@ -45,5 +49,9 @@ public class NewScpCommand extends AbstractScpCommand {
         return requestLog;
     }
 
+    @Override
+    public void start(Environment env) throws IOException {
+        super.start(env);
+    }
 
 }

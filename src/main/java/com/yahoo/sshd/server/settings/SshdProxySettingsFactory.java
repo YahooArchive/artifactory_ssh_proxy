@@ -12,10 +12,12 @@
  */
 package com.yahoo.sshd.server.settings;
 
+import javax.annotation.Nonnull;
+
 public class SshdProxySettingsFactory implements SshdSettingsFactory {
 
     @Override
-    public SshdSettingsInterface createSshdSettings(String[] args) throws SshdConfigurationException {
+    public SshdSettingsInterface createSshdSettings(@Nonnull String[] args) throws SshdConfigurationException {
         return new SshdSettingsBuilder(args).build();
     }
 

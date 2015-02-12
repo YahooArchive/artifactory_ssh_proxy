@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import javax.annotation.Nonnull;
+
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.server.keyprovider.PEMHostKeyProviderFactory;
@@ -53,7 +55,7 @@ public class SshServerWrapper implements Runnable, Closeable {
 
     private final CountDownLatch countdownLatch = new CountDownLatch(1);
 
-    public SshServerWrapper(String[] args) throws SshdConfigurationException {
+    public SshServerWrapper(@Nonnull String[] args) throws SshdConfigurationException {
         /*
          * Guice.createInjector() takes your Modules, and returns a new Injector instance. Most applications will call
          * this method exactly once, in their main() method.
@@ -78,6 +80,7 @@ public class SshServerWrapper implements Runnable, Closeable {
         // Setup the request log for each command factory.
         for (DelegatingCommandFactory cf : this.settings.getCfInstances()) {
             cf.setRequestLog(this.requestLog);
+            cf.setEnvToAfPropertyMapping(this.settings.getEnvToAfPropertyMapping());
         }
 
         LOGGER.debug("Got FS Factory: " + this.afFsFactory.getClass().getCanonicalName());

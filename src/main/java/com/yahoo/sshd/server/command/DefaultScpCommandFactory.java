@@ -29,9 +29,8 @@ import org.apache.sshd.server.CommandFactory;
  */
 public class DefaultScpCommandFactory extends DelegatingCommandFactory {
 
-    public DefaultScpCommandFactory() {
-    }
-    
+    public DefaultScpCommandFactory() {}
+
     public DefaultScpCommandFactory(CommandFactory delegate) {
         super(delegate);
     }
@@ -48,7 +47,7 @@ public class DefaultScpCommandFactory extends DelegatingCommandFactory {
     public Command createCommand(String command) {
         try {
             if (command.startsWith("scp")) {
-                NewScpCommand newScpCommand = new NewScpCommand(command, requestLog);
+                NewScpCommand newScpCommand = new NewScpCommand(command, requestLog, envToAfPropertyMapping);
                 return newScpCommand;
             }
 
