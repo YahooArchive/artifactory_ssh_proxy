@@ -37,18 +37,22 @@ public class TestNewScpHelper {
     private JFrogArtifactoryClientHelper jfach = Mockito.mock(JFrogArtifactoryClientHelper.class);
     private LoggingHelper loggingHelper = Mockito.mock(LoggingHelper.class);
 
+    NewScpHelper createNewScpHelper() {
+        return new NewScpHelper(in, out, root, loggingHelper, null, null);
+    }
+
     @Test(groups = "unit", description = "reset the file size when meta-data is null")
     public void testUploadSshFileSize() throws Exception {
         ArtifactorySshFile path = new ArtifactorySshFile(jfach, null, null, null, null);
         Assert.assertEquals(path.getSize(), 0);
-        NewScpHelper scpHelper = new NewScpHelper(in, out, root, loggingHelper);
+        NewScpHelper scpHelper = createNewScpHelper();
         scpHelper.resetArtifactorySshFileSize(path, 10002);
         Assert.assertEquals(path.getSize(), 10002);
     }
 
     @Test(groups = "unit", description = "we don't care if parent exists")
     public void testParentDoesNotExist() throws IOException {
-        NewScpHelper scpHelper = new NewScpHelper(in, out, root, loggingHelper);
+        NewScpHelper scpHelper = createNewScpHelper();
         SshFile mavenMetaParent = new SshFileMockBuilder().build();
         SshFile mavenMetaData = new SshFileMockBuilder().parentFile(mavenMetaParent).build();
         NameLengthTuple nameLength = Mockito.mock(NameLengthTuple.class);
@@ -63,7 +67,7 @@ public class TestNewScpHelper {
 
     @Test(groups = "unit", expectedExceptions = IOException.class, description = "Expects not writable")
     public void testFileExistsAndNotWritable() throws IOException {
-        NewScpHelper scpHelper = new NewScpHelper(in, out, root, loggingHelper);
+        NewScpHelper scpHelper = createNewScpHelper();
         SshFile sshFileParent = new SshFileMockBuilder().build();
         SshFile sshFile =
                         new SshFileMockBuilder().isWritable(false).doesExist(true).isFile(true)
@@ -74,7 +78,7 @@ public class TestNewScpHelper {
 
     @Test(groups = "unit", description = "Expects writable")
     public void testFileExistsAndWritable() throws IOException {
-        NewScpHelper scpHelper = new NewScpHelper(in, out, root, loggingHelper);
+        NewScpHelper scpHelper = createNewScpHelper();
         SshFile sshFileParent = new SshFileMockBuilder().build();
         SshFile sshFile =
                         new SshFileMockBuilder().isWritable(true).doesExist(true).isFile(true)
@@ -91,11 +95,10 @@ public class TestNewScpHelper {
 
     @Test(dataProvider = "data")
     public void testValidatePerms(String header) throws IOException {
-        NewScpHelper scpHelper = new NewScpHelper(in, out, root, loggingHelper);
+        NewScpHelper scpHelper = createNewScpHelper();
         NameLengthTuple nameLength = scpHelper.validatePerms(header);
         Assert.assertNotNull(nameLength);
     }
-
 
 
     public static final class SshFileMockBuilder {

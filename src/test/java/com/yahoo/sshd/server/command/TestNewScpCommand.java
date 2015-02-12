@@ -18,7 +18,6 @@ import java.io.OutputStream;
 
 import org.apache.sshd.common.file.FileSystemView;
 import org.apache.sshd.common.file.SshFile;
-import org.apache.sshd.common.scp.ScpHelper;
 import org.apache.sshd.server.ExitCallback;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -43,7 +42,7 @@ public class TestNewScpCommand {
 
         Mockito.when(isMock.read()).thenReturn(returnVal);
 
-        final ScpHelper helperMocked = new NewScpHelper(isMock, osMock, viewMock, loggingHelper) {
+        final NewScpHelper helperMocked = new NewScpHelper(isMock, osMock, viewMock, loggingHelper, null, null) {
             @Override
             public String readLine() throws IOException {
                 return "filename";
@@ -53,11 +52,10 @@ public class TestNewScpCommand {
 
 
         SshRequestLog requestLog = Mockito.mock(SshRequestLog.class);
-        NewScpCommand scpCommand = new NewScpCommand("scp -t " + filePath, requestLog) {
+        NewScpCommand scpCommand = new NewScpCommand("scp -t " + filePath, requestLog, null) {
             @Override
-            protected void initScpHelper() {
-                this.helper = helperMocked;
-                this.loggingHelper = Mockito.mock(LoggingHelper.class);
+            protected NewScpHelper createScpHelper() {
+                return helperMocked;
             }
         };
 

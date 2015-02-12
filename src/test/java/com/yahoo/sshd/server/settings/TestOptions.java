@@ -14,7 +14,10 @@ package com.yahoo.sshd.server.settings;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.configuration.AbstractFileConfiguration;
 import org.apache.commons.configuration.Configuration;
@@ -74,7 +77,7 @@ public class TestOptions {
         Assert.assertFalse(settings.isForwardingAllowed());
     }
 
-    @Test(enabled = false)
+    @Test
     public void testEnableJetty() throws SshdConfigurationException {
         // TODO: supposedly this test fails under windows.
         // too lazy to check at this point, prob cause I wrote it a long time
@@ -197,5 +200,67 @@ public class TestOptions {
 
         Assert.assertEquals(settings.isForwardingAllowed(), forwardingAllowed);
         Assert.assertTrue(c.isInstance(settings.getForwardingFilter()));
+    }
+
+    @Test
+    public void testEmptyEnvMapping() throws SshdConfigurationException {
+        SshdSettingsBuilder builder = new SshdSettingsBuilder(new String[] {});
+
+        SshdSettingsInterface settings = builder.build();
+        Assert.assertNotNull(settings.getEnvToAfPropertyMapping());
+        Assert.assertTrue(settings.getEnvToAfPropertyMapping().isEmpty());
+    }
+
+
+    @Test
+    public void testEnvMappings() throws SshdConfigurationException {
+        SshdSettingsBuilder builder =
+                        new SshdSettingsBuilder(new String[] {"-f",
+                                        "src/test/resources/conf/sshd_proxy/test_env_mapping.properties"});
+
+        SshdSettingsInterface settings = builder.build();
+        Map<String, String> envToAfPropertyMapping = settings.getEnvToAfPropertyMapping();
+        Assert.assertNotNull(envToAfPropertyMapping);
+        Assert.assertEquals(envToAfPropertyMapping.size(), 13);
+        for (Entry<String, String> e : envToAfPropertyMapping.entrySet()) {
+            Assert.assertEquals(e.getValue(), "X-SshProxy-" + e.getKey());
+        }
+
+        System.err.println(envToAfPropertyMapping);
+    }
+
+    @SuppressWarnings("unused")
+    @Test(expectedExceptions = SshdConfigurationException.class)
+    public void testBadCommandLine() throws SshdConfigurationException {
+        new SshdSettingsBuilder(new String[] {"-g"});
+    }
+
+    @SuppressWarnings("unused")
+    @Test(expectedExceptions = SshdConfigurationException.class)
+    public void testBadPropertiesFile() throws SshdConfigurationException {
+        new SshdSettingsBuilder(new String[] {"-f", "/null"});
+    }
+
+    @Test
+    public void testFilePathDir() throws SshdConfigurationException {
+        SshdSettingsBuilder sb =
+                        new SshdSettingsBuilder(
+                                        new String[] {
+                                                        "-f",
+                                                        "file:"
+                                                                        + new File(
+                                                                                        "src/test/resources/conf/sshd_proxy/sshd_proxy.properties")
+                                                                                        .getAbsolutePath()});
+        Assert.assertEquals(sb.getConfDir(), "src/test/resources/conf/sshd_proxy/");
+    }
+
+    @Test
+    public void foo() {
+        Map<String, String> m1 = new HashMap<>();
+        Map<String, Object> m2 = new HashMap<>();
+        m1.put("a", "b");
+        m2.putAll(m1);
+
+        System.err.println(m2);
     }
 }

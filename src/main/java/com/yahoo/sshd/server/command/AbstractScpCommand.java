@@ -16,20 +16,24 @@ package com.yahoo.sshd.server.command;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 import org.apache.sshd.common.file.FileSystemAware;
 import org.apache.sshd.common.file.SshFile;
 import org.apache.sshd.common.scp.ScpHelper;
 import org.apache.sshd.server.Command;
+import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.SessionAware;
 import org.apache.sshd.server.command.ScpCommand;
 import org.apache.sshd.server.session.ServerSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yahoo.sshd.server.filesystem.ArtifactorySshFile;
 import com.yahoo.sshd.server.logging.LoggingHelper;
 import com.yahoo.sshd.server.logging.SshRequestInfo;
-import com.yahoo.sshd.server.logging.SshRequestInfo.Builder;
 import com.yahoo.sshd.server.logging.SshRequestLog;
 import com.yahoo.sshd.server.logging.SshRequestLogListener;
 import com.yahoo.sshd.server.logging.SshRequestStatus;
@@ -51,16 +55,17 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScpCommand.class);
     protected ServerSession session;
     protected SshRequestLogListener requestLogListener;
-    protected ScpHelper helper;
-    protected Builder sshRequestInfo;
-    protected LoggingHelper loggingHelper;
+    protected Environment env;
+    protected Map<String, String> envToAfPropertyMapping;
 
-    public AbstractScpCommand(final String command) {
+    public AbstractScpCommand(@Nonnull final String command, @Nonnull Map<String, String> envToAfPropertyMapping) {
         super(command);
+        this.envToAfPropertyMapping = envToAfPropertyMapping;
     }
 
-    protected void initScpHelper() {
-        sshRequestInfo = new SshRequestInfo.Builder(this.session).setStartTimestamp(System.currentTimeMillis());
+    protected NewScpHelper createScpHelper() {
+        SshRequestInfo.Builder sshRequestInfo =
+                        new SshRequestInfo.Builder(this.session).setStartTimestamp(System.currentTimeMillis());
         if (optT) {
             sshRequestInfo.setMethod(SshRequestStatus.CREATED.getReasonPhrase()).setStatus(
                             SshRequestStatus.CREATED.getStatusCode());
@@ -71,16 +76,24 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
             sshRequestInfo.setMethod(SshRequestStatus.BAD_REQUEST.getReasonPhrase()).setStatus(
                             SshRequestStatus.BAD_REQUEST.getStatusCode());
         }
-        this.loggingHelper = new LoggingHelper(sshRequestInfo, requestLogListener);
-        this.helper = new NewScpHelper(in, out, root, this.loggingHelper);
+        LoggingHelper loggingHelper = new LoggingHelper(sshRequestInfo, requestLogListener);
+
+        return new NewScpHelper(in, out, root, loggingHelper, env, envToAfPropertyMapping);
     }
 
+    @Override
+    public void start(Environment env) throws IOException {
+        // save the env.
+        this.env = env;
+        super.start(env);
+    }
 
     @Override
     public void run() {
         int exitValue = ScpHelper.OK;
         String exitMessage = null;
-        initScpHelper();
+        // ScpHelper helper = new ScpHelper(in, out, root);
+        NewScpHelper helper = createScpHelper();
         SshFile sshFile = null;
 
         try {
@@ -89,17 +102,21 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
                 if (null == sshFile) {
                     throw new IOException("Unable to get path for " + path);
                 }
-                this.helper.receive(sshFile, optR, optD, optP);
+                helper.receive(sshFile, optR, optD, optP);
             } else if (optF) { // download
-                this.helper.send(Collections.singletonList(path), optR, optP);
+                helper.send(Collections.singletonList(path), optR, optP);
             } else {
                 throw new IOException("Unsupported mode");
             }
         } catch (Throwable e) {
             exitValue = ScpHelper.ERROR;
-            exitMessage = e.getMessage();
+            exitMessage = e.getMessage() == null ? "" : e.getMessage();
+            // out.write(exitValue);
+            // out.write(exitMessage.getBytes());
+            // out.write('\n');
+            // out.flush();
             writeBackErrorMessage(out, exitValue, exitMessage);
-            loggingHelper.doLogging(e, path);
+            helper.doLogging(e, path);
             LOGGER.info("Error in scp command", e);
         } finally {
             if (callback != null) {
@@ -121,16 +138,16 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
         requestLogListener.registerSession(session);
     }
 
-    private void writeBackErrorMessage(OutputStream out, int exitValue, String exitMessage) {
+    private void writeBackErrorMessage(@Nonnull OutputStream out, int exitValue, @Nonnull String exitMessage) {
         try {
             out.write(exitValue);
-            if (null != exitMessage) {
-                out.write(exitMessage.getBytes());
-            }
+            out.write(exitMessage.getBytes());
             out.write('\n');
             out.flush();
-        } catch (IOException e2) {
-            LOGGER.debug("flush failed", e2);
+        } catch (IOException e) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("flush failed", e);
+            }
         }
     }
 

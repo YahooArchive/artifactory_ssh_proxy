@@ -128,6 +128,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
      */
     protected final ShellMode shellMode;
 
+    protected final Map<String, String> envToAfPropertyMapping;
+
     public SshdProxySettings(SshdSettingsBuilder b) throws SshdConfigurationException {
 
         this.port = b.getSshdPort();
@@ -172,6 +174,8 @@ public class SshdProxySettings implements SshdSettingsInterface {
         this.developmentMode = b.getDevelopmentMode();
 
         this.shellMode = b.getShellMode();
+        
+        this.envToAfPropertyMapping = b.getEnvToAfPropertyMapping();
     }
 
     /**
@@ -468,9 +472,17 @@ public class SshdProxySettings implements SshdSettingsInterface {
             case MESSAGE:
                 return false;
 
+            case GROOVY_SHELL:
+                return false;
+
             default:
                 return false;
         }
 
+    }
+
+    @Override
+    public Map<String, String> getEnvToAfPropertyMapping() {
+        return envToAfPropertyMapping;
     }
 }

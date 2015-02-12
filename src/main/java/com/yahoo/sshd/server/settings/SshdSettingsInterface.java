@@ -14,6 +14,7 @@ package com.yahoo.sshd.server.settings;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.sshd.common.Cipher;
 import org.apache.sshd.common.Factory;
@@ -98,4 +99,10 @@ public interface SshdSettingsInterface {
      * @return
      */
     boolean isForwardingAllowed();
+
+    /**
+     * 
+     * @return a map of user env strings to artifactory properties.
+     */
+    Map<String, String> getEnvToAfPropertyMapping();
 }

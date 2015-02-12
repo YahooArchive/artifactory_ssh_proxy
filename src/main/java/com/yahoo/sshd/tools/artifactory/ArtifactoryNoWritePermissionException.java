@@ -12,25 +12,23 @@
  */
 package com.yahoo.sshd.tools.artifactory;
 
-import java.io.IOException;
-
 import org.apache.sshd.common.file.SshFile;
 
-public class ArtifactoryNoWritePermissionException extends IOException {
+import com.yahoo.sshd.server.logging.SshRequestStatus;
+
+public class ArtifactoryNoWritePermissionException extends ArtifactoryIOException {
     private static final long serialVersionUID = 1L;
-    private final SshFile file;
 
     public ArtifactoryNoWritePermissionException(String message) {
-        this(message, null);
+        super(message, null);
     }
 
     public ArtifactoryNoWritePermissionException(String message, SshFile file) {
-        super(message);
-        this.file = file;
+        super(message, file);
     }
 
-    public SshFile getFile() {
-        return file;
+    @Override
+    public int getStatusCode() {
+        return SshRequestStatus.FORBIDDEN.getStatusCode();
     }
-
 }

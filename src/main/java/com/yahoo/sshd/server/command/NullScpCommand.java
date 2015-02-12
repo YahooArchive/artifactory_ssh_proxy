@@ -12,6 +12,8 @@
  */
 package com.yahoo.sshd.server.command;
 
+import java.util.HashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +29,7 @@ public class NullScpCommand extends AbstractScpCommand {
     protected static final Logger LOGGER = LoggerFactory.getLogger(NullScpCommand.class);
 
     public NullScpCommand(String args) {
-        super(args);
+        super(args, new HashMap<String, String>());
     }
 
     @Override

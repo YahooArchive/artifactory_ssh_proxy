@@ -76,15 +76,18 @@ public class ArtifactorySshFile implements SshFile {
 
     private long size;
 
-    protected ArtifactorySshFile(final String filePath, final String userName, ArtifactMetaData metaData,
-                    final JFrogArtifactoryClientHelper jfach, final String repositoryName,
-                    final ArtifactoryAuthorizer artifactoryAuthorizer) {
+    private final HashMap<String, Object> inProperties;
+
+    protected ArtifactorySshFile(final JFrogArtifactoryClientHelper jfach, final String filePath,
+                    final String userName, final String repositoryName,
+                    final ArtifactoryAuthorizer artifactoryAuthorizer, ArtifactMetaData metaData) {
         this.filePath = filePath;
         this.userName = userName;
         this.metaData = metaData;
         this.jfach = jfach;
         this.repositoryName = repositoryName;
         this.artifactoryAuthorizer = artifactoryAuthorizer;
+        this.inProperties = new HashMap<>();
     }
 
     /**
@@ -114,6 +117,7 @@ public class ArtifactorySshFile implements SshFile {
         }
 
         this.metaData = tempData;
+        this.inProperties = new HashMap<>();
     }
 
     /**
@@ -403,8 +407,12 @@ public class ArtifactorySshFile implements SshFile {
         try {
             // TODO: eventually we need to call get on this future and deal with
             // the response.
-            Map<String, Object> properties = new HashMap<>();
+            Map<String, Object> properties = new HashMap<>(inProperties);
             properties.put("X-uploaded-by", userName);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding properties: " + properties);;
+            }
 
             jfach.putArtifact(snk, filePath, properties, asyncPipedOutputStream.getAsyncHandler());
         } catch (ArtifactNotFoundException e) {
@@ -547,5 +555,13 @@ public class ArtifactorySshFile implements SshFile {
 
     public String getRepoName() {
         return this.repositoryName;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.inProperties.putAll(properties);
+    }
+
+    public Map<String, Object> getProperties() {
+        return inProperties;
     }
 }

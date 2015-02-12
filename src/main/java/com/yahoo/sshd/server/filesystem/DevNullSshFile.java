@@ -78,7 +78,7 @@ public class DevNullSshFile extends ArtifactorySshFile {
     public DevNullSshFile(final String filePath, final String userName,
                     final ArtifactoryAuthorizer artifactoryAuthorizer) throws ArtifactMetaDataParseFailureException,
                     IOException {
-        super(filePath, userName, createMetaData(userName), null, "/dev/null", artifactoryAuthorizer);
+        super(null, filePath, userName, "/dev/null", artifactoryAuthorizer, createMetaData(userName));
         this.artifactoryAuthorizer = artifactoryAuthorizer;
     }
 

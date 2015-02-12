@@ -12,6 +12,8 @@
  */
 package com.yahoo.sshd.server.logging;
 
+import javax.annotation.Nonnull;
+
 import org.apache.sshd.common.file.SshFile;
 import org.apache.sshd.common.scp.ScpHelper;
 import org.slf4j.Logger;
@@ -19,9 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.server.filesystem.ArtifactorySshFile;
 import com.yahoo.sshd.server.logging.SshRequestInfo.Builder;
-import com.yahoo.sshd.tools.artifactory.ArtifactoryFileNotFoundException;
-import com.yahoo.sshd.tools.artifactory.ArtifactoryNoReadPermissionException;
-import com.yahoo.sshd.tools.artifactory.ArtifactoryNoWritePermissionException;
+import com.yahoo.sshd.tools.artifactory.ArtifactoryExceptionInformation;
 import com.yahoo.sshd.tools.artifactory.RepositoryAndPath;
 
 public class LoggingHelper {
@@ -34,33 +34,29 @@ public class LoggingHelper {
         this.sshRequestLogListener = sshRequestLogListener;
     }
 
-    public void doLogging(final SshFile sshfile) {
-        if (null == sshfile) {
-            throw new IllegalArgumentException("logging expects SshFile as an argument");
-        }
+    public void doLogging(@Nonnull final SshFile sshfile) {
         ArtifactorySshFile afSshFile = (ArtifactorySshFile) sshfile;
         this.sshRequestInfo.setPath(afSshFile.getAbsolutePath()).setSize(afSshFile.getSize())
                         .setRepoName(afSshFile.getRepoName());
         doLogging();
     }
 
-    public void doLogging(final Throwable t, final String path) {
-        if (null == t) {
-            throw new IllegalArgumentException("logging expects Throwable as an argument");
-        }
+    public void doLogging(@Nonnull final Throwable t, final String path) {
         int statusCode = SshRequestStatus.INTERNAL_SERVER_ERROR.getStatusCode();
-        SshFile sshFile = null;
         statusCode = getStatusCodeByThrowable(t);
         this.sshRequestInfo.setStatus(statusCode).setExitValue(ScpHelper.ERROR);
-        sshFile = getSshFileFromException(t);
-        if (null == sshFile) {
-            // we need to parse path
-            RepositoryAndPath repositoryAndPath = RepositoryAndPath.splitRepositoryAndPath(path);
-            this.sshRequestInfo.setPath(repositoryAndPath.getPath()).setRepoName(repositoryAndPath.getRepository());
-            doLogging();
+        SshFile sshFile = getSshFileFromException(t);
+
+        if (null != sshFile) {
+            doLogging(sshFile);
             return;
         }
-        doLogging(sshFile);
+
+        // we need to parse path
+        RepositoryAndPath repositoryAndPath = RepositoryAndPath.splitRepositoryAndPath(path);
+        this.sshRequestInfo.setPath(repositoryAndPath.getPath()).setRepoName(repositoryAndPath.getRepository());
+        doLogging();
+        return;
     }
 
     private void doLogging() {
@@ -73,11 +69,8 @@ public class LoggingHelper {
 
     private static final int getStatusCodeByThrowable(Throwable e) {
         int statusCode;
-        if (e instanceof ArtifactoryFileNotFoundException) {
-            statusCode = SshRequestStatus.NOT_FOUND.getStatusCode();
-        } else if (e instanceof ArtifactoryNoReadPermissionException
-                        || e instanceof ArtifactoryNoWritePermissionException) {
-            statusCode = SshRequestStatus.FORBIDDEN.getStatusCode();
+        if (e instanceof ArtifactoryExceptionInformation) {
+            statusCode = ((ArtifactoryExceptionInformation) e).getStatusCode();
         } else if (e.getCause() instanceof org.apache.http.client.HttpResponseException) {
             statusCode = ((org.apache.http.client.HttpResponseException) e.getCause()).getStatusCode();
         } else {
@@ -88,7 +81,8 @@ public class LoggingHelper {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("generic IOException, errorMessage: " + errorMessage);
             }
-            if (errorMessage.indexOf("Conflict") >= 0) {
+
+            if (null != errorMessage && errorMessage.indexOf("Conflict") >= 0) {
                 statusCode = SshRequestStatus.CONFLICT.getStatusCode();
             } else {
                 statusCode = SshRequestStatus.INTERNAL_SERVER_ERROR.getStatusCode();
@@ -98,15 +92,10 @@ public class LoggingHelper {
     }
 
     private static final SshFile getSshFileFromException(Throwable e) {
-        if (e instanceof ArtifactoryNoReadPermissionException) {
-            return ((ArtifactoryNoReadPermissionException) e).getFile();
-        } else if (e instanceof ArtifactoryFileNotFoundException) {
-            return ((ArtifactoryFileNotFoundException) e).getFile();
-        } else if (e instanceof ArtifactoryNoWritePermissionException) {
-            return ((ArtifactoryNoWritePermissionException) e).getFile();
-        } else {
-            return null;
+        if (e instanceof ArtifactoryExceptionInformation) {
+            return ((ArtifactoryExceptionInformation) e).getFile();
         }
+        return null;
     }
 
 }

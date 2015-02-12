@@ -12,6 +12,9 @@
  */
 package com.yahoo.sshd.server.command;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.sshd.server.CommandFactory;
 
 import com.yahoo.sshd.server.logging.SshRequestLog;
@@ -20,6 +23,7 @@ public abstract class DelegatingCommandFactory implements CommandFactory {
 
     protected CommandFactory delegate;
     protected SshRequestLog requestLog;
+    protected Map<String, String> envToAfPropertyMapping = new HashMap<>();
 
 
     public DelegatingCommandFactory() {
@@ -45,6 +49,14 @@ public abstract class DelegatingCommandFactory implements CommandFactory {
 
     public void setRequestLog(SshRequestLog requestLog) {
         this.requestLog = requestLog;
+    }
+
+    public Map<String, String> getEnvToAfPropertyMapping() {
+        return envToAfPropertyMapping;
+    }
+
+    public void setEnvToAfPropertyMapping(Map<String, String> envToAfPropertyMapping) {
+        this.envToAfPropertyMapping = new HashMap<>(envToAfPropertyMapping);
     }
 
 }

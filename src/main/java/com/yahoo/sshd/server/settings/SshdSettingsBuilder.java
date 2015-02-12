@@ -15,7 +15,12 @@ package com.yahoo.sshd.server.settings;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -99,6 +104,8 @@ public class SshdSettingsBuilder {
 
     protected String overriddenRoot;
 
+    protected Map<String, String> envToAfPropertyMapping;
+
     static final List<String> DEFAULT_COMMAND_FACTORIES = new ArrayList<>(Arrays.asList(new String[] {//
                     DefaultScpCommandFactory.class.getCanonicalName(), //
                     }));
@@ -107,28 +114,24 @@ public class SshdSettingsBuilder {
 
     }
 
-    public SshdSettingsBuilder(String[] args) throws SshdConfigurationException {
+    public SshdSettingsBuilder(@Nonnull String[] args) throws SshdConfigurationException {
         String overriddenPath = null;
+        // create the parser
+        final CommandLineParser parser = new GnuParser();
 
-        if (null != args) {
-            // create the parser
-            final CommandLineParser parser = new GnuParser();
+        try {
+            Options options = new Options();
+            options.addOption("f", "config", true, "Path to properties file");
+            options.addOption("r", "root", true, "root path under which things are stored");
+            options.addOption("x", "xdeveloper", false, "Enable developer mode, disabling auth access control");
 
-            try {
-                Options options = new Options();
-                options.addOption("f", "config", true, "Path to properties file");
-                options.addOption("r", "root", true, "root path under which things are stored");
-                options.addOption("x", "xdeveloper", false, "Enable developer mode, disabling auth access control");
-
-                // parse the command line arguments
-                CommandLine line = parser.parse(options, args);
-                overriddenPath = line.getOptionValue('f');
-                overriddenRoot = fixEmpty(line.getOptionValue('r'));
-                developerMode = Boolean.valueOf(line.hasOption('x'));
-
-            } catch (ParseException e) {
-                throw new SshdConfigurationException(e);
-            }
+            // parse the command line arguments
+            CommandLine line = parser.parse(options, args);
+            overriddenPath = line.getOptionValue('f');
+            overriddenRoot = fixEmpty(line.getOptionValue('r'));
+            developerMode = Boolean.valueOf(line.hasOption('x'));
+        } catch (ParseException e) {
+            throw new SshdConfigurationException(e);
         }
 
         try {
@@ -670,5 +673,40 @@ public class SshdSettingsBuilder {
             shellMode = findShellMode();
         }
         return shellMode;
+    }
+
+    public Map<String, String> getEnvToAfPropertyMapping() {
+        if (null == envToAfPropertyMapping) {
+            envToAfPropertyMapping = findEnvToAfPropertyMapping();
+        }
+        return envToAfPropertyMapping;
+    }
+
+    // the iterator adds it's own period...
+    static final String ENV_MAPPING_PREFIX = "sshd.envMapping";
+
+    protected Map<String, String> findEnvToAfPropertyMapping() {
+        HashMap<String, String> mapping = new HashMap<>();
+        Iterator<String> keys = configuration.getKeys(ENV_MAPPING_PREFIX);
+        if (null == keys) {
+            return mapping;
+        }
+
+        // add the stupid dot on.
+        final int offset = ENV_MAPPING_PREFIX.length() + 1;
+
+        while (keys.hasNext()) {
+            String nextKey = keys.next();
+            if (nextKey.length() <= offset) {
+                continue;
+            }
+
+            String envName = nextKey.substring(offset);
+            String value = configuration.getString(nextKey);
+
+            mapping.put(envName, value);
+        }
+
+        return mapping;
     }
 }

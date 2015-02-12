@@ -16,7 +16,9 @@ import java.io.FileNotFoundException;
 
 import org.apache.sshd.common.file.SshFile;
 
-public class ArtifactoryFileNotFoundException extends FileNotFoundException {
+import com.yahoo.sshd.server.logging.SshRequestStatus;
+
+public class ArtifactoryFileNotFoundException extends FileNotFoundException implements ArtifactoryExceptionInformation {
 
     private static final long serialVersionUID = 1L;
     private SshFile file;
@@ -35,8 +37,14 @@ public class ArtifactoryFileNotFoundException extends FileNotFoundException {
         this.file = file;
     }
 
+    @Override
     public SshFile getFile() {
         return file;
+    }
+
+    @Override
+    public int getStatusCode() {
+        return SshRequestStatus.NOT_FOUND.getStatusCode();
     }
 
 }
