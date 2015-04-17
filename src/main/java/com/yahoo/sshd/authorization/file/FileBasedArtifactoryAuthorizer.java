@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ import com.yahoo.sshd.utils.ThreadUtils;
  */
 public class FileBasedArtifactoryAuthorizer implements ArtifactoryAuthorizer {
     private static final Logger LOG = LoggerFactory.getLogger(FileBasedArtifactoryAuthorizer.class);
-
+    private static final int DEFAULT_WAIT_TIMEOUT_SECS = 120;
     private final ConcurrentHashMap<String, PermTarget> authorizationHashMap;
 
     public FileBasedArtifactoryAuthorizer(final SshdSettingsInterface settings) {
@@ -54,8 +55,8 @@ public class FileBasedArtifactoryAuthorizer implements ArtifactoryAuthorizer {
                             new ArtifactoryAuthorizerFileScanner(countdownLatch, watchDirectory, authorizationHashMap)) {
 
                 ThreadUtils.cachedThreadPool().execute(artifactoryAuthorizerFileScanner);
-                LOG.info("Waiting for authorization file to be loaded");
-                countdownLatch.await();
+                LOG.info("Waiting for authorization file to be loaded with timeout {} seconds", DEFAULT_WAIT_TIMEOUT_SECS);
+                countdownLatch.await(DEFAULT_WAIT_TIMEOUT_SECS, TimeUnit.SECONDS);
             }
         } catch (InterruptedException | IOException e) {
             throw new RuntimeException(e);
@@ -83,6 +84,10 @@ public class FileBasedArtifactoryAuthorizer implements ArtifactoryAuthorizer {
         } else {
             return false;
         }
+    }
+    
+    public ConcurrentHashMap<String, PermTarget> getAuthorizationHashMap() {
+        return authorizationHashMap;
     }
 
 }
