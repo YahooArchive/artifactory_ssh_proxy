@@ -23,7 +23,7 @@
     <packaging>jar</packaging>
 
     <scm>
-        <developerConnection>scm:git:ssh://git@github.com:yahoo/artifactory_ssh_proxy.git</developerConnection>
+        <developerConnection>scm:git:ssh://git@github.com/yahoo/artifactory_ssh_proxy.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -75,6 +75,11 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.2</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>

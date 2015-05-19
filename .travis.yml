@@ -1,3 +1,17 @@
 language: java
+
 jdk:
-    - oraclejdk7
+  - oraclejdk7
+
+after_success:
+  - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && test "${TRAVIS_BRANCH}" == "master" && ./travis/publish_to_bintray.sh
+
+branches:
+  except:
+    - travis
+    - gh-pages
+
+env:
+  global:
+  - secure: crAehoZ8wBdKnTqLTaeCcesaNVmEpTXtkkrqKzJHQv68oUWhaAXCxyBouH7LeIEVqyoGLuoD+ktQYWAZ5IKLghWIU90LoltP7tLpEE4uZegAoTneayQBfqxkTNaToX+aUiKsceO7mBKy9elC+Pt1N/euVlrUFqQ8J6EsF3/W6ek=
+  - secure: Jn7t5oIyyacBw87tYuDB0R7ZhS2SicaorafCHQ2qCZn/uANS7iwijjYV01ruh6Pw6lh0RJGvNE7+4Yu+QxDgvxiymyvDLOEM3fQXATfDOrBx9dxoOPjnMBaE3mffdXRkhEIHrGWgsLRCL4hu8/RahAj+xhd75t71V/C0Tt69keo=
