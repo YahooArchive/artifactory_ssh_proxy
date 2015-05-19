@@ -44,7 +44,7 @@ ARTIFACTS=( sshd_proxy-${CURRENT_VERSION}.jar sshd_proxy-${CURRENT_VERSION}-site
 for artifact in "${ARTIFACTS[@]}"
 do
     echo "Uploading $artifact..."
-    UPLOAD_RESPONSE=curl -s -o /dev/null -w "%{http_code}" -T target/$artifact -u ${BINTRAY_USER}:${BINTRAY_API_KEY} https://api.bintray.com/content/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/${CURRENT_VERSION}/${ARTIFACT}
+    UPLOAD_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -T target/$artifact -u ${BINTRAY_USER}:${BINTRAY_API_KEY} https://api.bintray.com/content/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/${CURRENT_VERSION}/${ARTIFACT})
     if (( $UPLOAD_RESPONSE >= 200 && $UPLOAD_RESPONSE < 227 )); then
         echo "Success Uploading $artifact."
         echo
@@ -57,7 +57,7 @@ do
 done
 
 echo "Publishing Version ${CURRENT_VERSION} of artifactory_ssh_proxy"
-PUBLISH_RESPONSE=curl -s -o /dev/null -w "%{http_code}" -X POST -u ${BINTRAY_USER}:${BINTRAY_API_KEY} https://api.bintray.com/content/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/publish
+PUBLISH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST -u ${BINTRAY_USER}:${BINTRAY_API_KEY} https://api.bintray.com/content/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/publish)
 if (( $PUBLISH_RESPONSE >= 200 && $PUBLISH_RESPONSE < 227 )); then
     echo "Success publishing."
     echo "https://bintray.com/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/view"
