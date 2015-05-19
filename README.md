@@ -1,5 +1,8 @@
 # Artifactory sshd_proxy
 
+[![Build Status](https://travis-ci.org/yahoo/artifactory_ssh_proxy.svg)](https://travis-ci.org/yahoo/artifactory_ssh_proxy) [![Dependency Status](https://www.versioneye.com/user/projects/555b952c634daa30fb000308/badge.svg?style=flat)](https://www.versioneye.com/user/projects/555b952c634daa30fb000308)
+
+
 **artifactory_ssh_proxy** is an Artifactory SSH proxy that lets you `scp` files directly into your Artifactory server.  No need to use the REST API.
 
 You will be able to push artifacts up as simply as:
@@ -36,7 +39,7 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
    - FIXME: should be able to seperate this out.
 
 - It's highly advisable to look at apache commons daemon to run this while dropping privileges.
-- For unix operating systems, jsvc: http://commons.apache.org/proper/commons-daemon/jsvc.html 
+- For unix operating systems, jsvc: http://commons.apache.org/proper/commons-daemon/jsvc.html
 - For windows, procrun: http://commons.apache.org/proper/commons-daemon/procrun.html
 
 ## Build & Run
@@ -83,7 +86,7 @@ If you do this, be sure to include wagon-ssh-external artifact in your project's
 
 9. The proxy writes log files out to `/opt/sshd_proxy/logs/sshd_proxy`.
     1. Create the log directory:  `$ sudo mkdir -p /opt/sshd_proxy/logs/sshd_proxy`
-    2. Then change the permissions: `$ sudo chmod 750 /opt/sshd_proxy/logs/sshd_proxy`  
+    2. Then change the permissions: `$ sudo chmod 750 /opt/sshd_proxy/logs/sshd_proxy`
     3. Change the owner: `$ sudo chown <logs_user> /opt/sshd_proxy/logs/sshd_proxy`
 
 10. Now you should be all set!  Go ahead and run it.
@@ -119,11 +122,11 @@ you should see:
     *---------------------------------------------------*
     Connection to dinnercare closed.
 
-With these instructions, you can copy the artifactory war to 
+With these instructions, you can copy the artifactory war to
 `developer_config/webapps/artifactory.war` and then artifactory runs inside the ssh server:
 
     [areese@dinnercare]$ scp -P 2222  dependency-reduced-pom.xml localhost:/libs-release-local/dependency-reduced-pom.xml
-    dependency-reduced-pom.xml                                                                    100% 9722     9.5KB/s   00:00    
+    dependency-reduced-pom.xml                                                                    100% 9722     9.5KB/s   00:00
     [areese@dinnercare]$
 
 
@@ -132,7 +135,7 @@ With these instructions, you can copy the artifactory war to
 The sshd proxy embeds jetty to allow custom functionality.
 If you have a vip that performs status checks over http, you can use jetty to communicate back to the vip.
 
-If you are running multiple instances of the proxy behind a vip, you'll want to ensure that the host keys 
+If you are running multiple instances of the proxy behind a vip, you'll want to ensure that the host keys
 of all hosts that are behind the vip match.
 
 Currently the only functionality supported is scp, and it does not do checksum based uploads yet.
