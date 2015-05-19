@@ -1,6 +1,6 @@
 # Artifactory sshd_proxy
 
-[![Build Status](https://travis-ci.org/yahoo/artifactory_ssh_proxy.svg)](https://travis-ci.org/yahoo/artifactory_ssh_proxy) [![Dependency Status](https://www.versioneye.com/user/projects/555b952c634daa30fb000308/badge.svg?style=flat)](https://www.versioneye.com/user/projects/555b952c634daa30fb000308)
+[![Build Status](https://travis-ci.org/yahoo/artifactory_ssh_proxy.svg)](https://travis-ci.org/yahoo/artifactory_ssh_proxy) [![Dependency Status](https://www.versioneye.com/user/projects/555b952c634daa30fb000308/badge.svg?style=flat)](https://www.versioneye.com/user/projects/555b952c634daa30fb000308) [![Download](https://api.bintray.com/packages/yahoo/maven/artifactory_ssh_proxy/images/download.svg)](https://bintray.com/yahoo/maven/artifactory_ssh_proxy/_latestVersion)
 
 
 **artifactory_ssh_proxy** is an Artifactory SSH proxy that lets you `scp` files directly into your Artifactory server.  No need to use the REST API.
