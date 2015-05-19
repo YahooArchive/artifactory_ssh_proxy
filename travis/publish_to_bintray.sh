@@ -20,6 +20,18 @@
 # bintray maven repository.  This script should be ran from the travis
 # machine, and specified to be used in the yml build configuration.
 set -e
+
+echo ${TRAVIS_TAG} | grep -q "sshd_proxy-";
+IS_NOT_RELEASE=$?
+
+if ((${IS_NOT_RELEASE} == 1)); then
+    echo "Not a tagged release version."
+    echo "To release this tagged artifact into bintray, the git tag must be of"
+    echo "the format: sshd_proxy-*.  Example:  sshd_proxy-0.0.2, sshd_proxy-1.2.3"
+    echo "etc."
+    exit 0
+fi
+
 echo "Publishing to bintray at https://bintray.com/yahoo"
 
 CURRENT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | grep -Ev '(^\[|Download\w+:)')
