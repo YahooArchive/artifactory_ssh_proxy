@@ -4,10 +4,8 @@ jdk:
   - oraclejdk7
   - oraclejdk8
 
-after_script:
-  - test "${TRAVIS_JDK_VERSION}" == "oraclejdk7" && mvn javadoc:jar
-
 after_success:
+  - test "${TRAVIS_JDK_VERSION}" == "oraclejdk7" && mvn javadoc:jar
   - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && test "${TRAVIS_JDK_VERSION}" == "oraclejdk7" && ./travis/publish_to_bintray.sh
 
 branches:
