@@ -13,12 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: Once https://github.com/travis-ci/dpl/pull/259 is merged,
-#       remove this script and use the provider.
-
 # Simple script to use from Travis-CI that will push out a jar to
 # bintray maven repository.  This script should be ran from the travis
 # machine, and specified to be used in the yml build configuration.
+#
+# Poor man's deploy script.
+
+# TODO: Once https://github.com/travis-ci/dpl/pull/259 is merged,
+#       modify this script and use the provider.
+
 set -e
 
 echo ${TRAVIS_TAG} | grep -q "sshd_proxy-";
@@ -37,7 +40,13 @@ echo "Publishing to bintray at https://bintray.com/yahoo"
 CURRENT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | grep -Ev '(^\[|Download\w+:)')
 echo "Releasing version:  ${CURRENT_VERSION}"
 
-ARTIFACTS=( sshd_proxy-${CURRENT_VERSION}.jar sshd_proxy-${CURRENT_VERSION}-site.jar )
+# Some initial setup to get the right files in the right location for us
+mv dependency-reduced-pom.xml target/sshd_proxy-${CURRENT_VERSION}.pom
+mv pom.xml target/sshd_proxy-${CURRENT_VERSION}-original.pom
+mv target/original-sshd_proxy-${CURRENT_VERSION}.jar target/sshd_proxy-${CURRENT_VERSION}-original.jar
+
+ARTIFACTS=( sshd_proxy-${CURRENT_VERSION}-original.jar sshd_proxy-${CURRENT_VERSION}.jar sshd_proxy-${CURRENT_VERSION}-site.jar sshd_proxy-${CURRENT_VERSION}-sources.jar sshd_proxy-${CURRENT_VERSION}-javadoc.jar sshd_proxy-${CURRENT_VERSION}.pom sshd_proxy-${CURRENT_VERSION}-original.pom )
+
 
 # Upload and Publish each artifact into bintray
 # https://bintray.com/yahoo/maven/artifactory_ssh_proxy/view
