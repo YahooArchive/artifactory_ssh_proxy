@@ -43,18 +43,28 @@ ARTIFACTS=( sshd_proxy-${CURRENT_VERSION}.jar sshd_proxy-${CURRENT_VERSION}-site
 # https://bintray.com/yahoo/maven/artifactory_ssh_proxy/view
 for artifact in "${ARTIFACTS[@]}"
 do
-    echo "Uploading and publishing $artifact at version ${CURRENT_VERSION}..."
-    UPLOAD_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -T target/$artifact -u ${BINTRAY_USER}:${BINTRAY_API_KEY} "https://api.bintray.com/content/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/${CURRENT_VERSION}/${ARTIFACT}?publish=1")
+    echo "Uploading $artifact..."
+    UPLOAD_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -T target/$artifact -u ${BINTRAY_USER}:${BINTRAY_API_KEY} https://api.bintray.com/content/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/${CURRENT_VERSION}/${ARTIFACT})
     if (( $UPLOAD_RESPONSE >= 200 && $UPLOAD_RESPONSE < 227 )); then
         echo "Success Uploading $artifact."
-        echo "Published ${CURRENT_VERSION}"
-        echo "https://bintray.com/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/view"
         echo
     else
-        echo "Error during upload:  HTTP $UPLOAD_RESPONSE"
+        echo "Error during upload: HTTP $UPLOAD_RESPONSE"
         echo
         exit 1
     fi
     echo
 done
+
+echo "Publishing Version ${CURRENT_VERSION} of artifactory_ssh_proxy"
+PUBLISH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST -u ${BINTRAY_USER}:${BINTRAY_API_KEY} https://api.bintray.com/content/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/publish)
+if (( $PUBLISH_RESPONSE >= 200 && $PUBLISH_RESPONSE < 227 )); then
+    echo "Success publishing."
+    echo "https://bintray.com/yahoo/maven/artifactory_ssh_proxy/${CURRENT_VERSION}/view"
+    echo
+else
+    echo "Error during publishing ${CURRENT_VERSION} of artifactory_ssh_proxy."
+    echo "HTTP ${PUBLISH_RESPONSE}"
+    exit 1
+fi
 echo
