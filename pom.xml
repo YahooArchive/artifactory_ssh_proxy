@@ -31,6 +31,13 @@
 
     <url>https://github.com/yahoo/artifactory_ssh_proxy</url>
 
+    <distributionManagement>
+        <repository>
+            <id>bintray-yahoo-maven</id>
+            <url>https://api.bintray.com/maven/yahoo/maven/artifactory_ssh_proxy;publish=1</url>
+        </repository>
+    </distributionManagement>
+
     <repositories>
         <repository>
             <snapshots>
