@@ -32,7 +32,7 @@ public class TestJettyRunnable {
 
     @Test(dataProvider = "disabled")
     public void testDisabled(int port, String webapp) throws Exception {
-        RunnableComponent rc = new JettyRunnableComponent(port, webapp);
+        RunnableComponent rc = new JettyRunnableComponent(port, webapp, JettyServiceSetting.ARTIFACTORY);
         rc.run();
         rc.close();
     }
@@ -40,7 +40,7 @@ public class TestJettyRunnable {
     // FIXME: figure out how to get a dynamic port, I made this one up.
     @Test
     public void test() throws Exception {
-        RunnableComponent rc = new JettyRunnableComponent(60540, "target/webapps");
+        RunnableComponent rc = new JettyRunnableComponent(60540, "target/webapps", JettyServiceSetting.ARTIFACTORY);
         rc.run();
         rc.close();
     }

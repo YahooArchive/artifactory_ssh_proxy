@@ -20,18 +20,21 @@ import com.yahoo.sshd.utils.RunnableComponent;
 
 /**
  * A wrapper to allow jetty to be started and stopped.
- * 
+ *
  * @author areese
- * 
+ *
  */
 public class JettyRunnableComponent implements RunnableComponent {
 
     private int jettyPort;
     private String jettyWebAppDir;
     private Server server;
+    private JettyServiceSetting jettyServiceSetting;
 
-    public JettyRunnableComponent(final int jettyPort, final String jettyWebAppDir) {
+    public JettyRunnableComponent(final int jettyPort, final String jettyWebAppDir,
+                                  final JettyServiceSetting jettyServiceSetting) {
         this.jettyPort = jettyPort;
+        this.jettyServiceSetting = jettyServiceSetting;
         this.jettyWebAppDir = (null == jettyWebAppDir) ? null : jettyWebAppDir.trim();
     }
 
@@ -42,7 +45,7 @@ public class JettyRunnableComponent implements RunnableComponent {
                 return;
             }
 
-            server = JettyServer.newServer(jettyPort, jettyWebAppDir);
+            server = JettyServer.newServer(jettyPort, jettyWebAppDir, jettyServiceSetting);
             server.start();
         } catch (Exception e) {
             throw new RuntimeException(e);

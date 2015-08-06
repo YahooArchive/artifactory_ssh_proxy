@@ -135,6 +135,9 @@ With these instructions, you can copy the artifactory war to
 The sshd proxy embeds jetty to allow custom functionality.
 If you have a vip that performs status checks over http, you can use jetty to communicate back to the vip.
 
+To switch on the vip mode in jetty use the parameter '-s vip'. This will serve the resources in the configured webapp directory.
+To deploy the artifactory.war, use '-s artifactory'. To do both, use '-s both'. If this flag is not supplied, it defaults to '-s artifactory'.
+
 If you are running multiple instances of the proxy behind a vip, you'll want to ensure that the host keys
 of all hosts that are behind the vip match.
 
