@@ -20,6 +20,8 @@ import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.thread.ScheduledExecutorScheduler;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
@@ -29,9 +31,8 @@ public class JettyServer {
     final static Logger LOG = LoggerFactory.getLogger(JettyServer.class);
 
 
-    // FIXME: need to pick between loading artifactory and serving resources
     @SuppressWarnings({"resource", "boxing"})
-    public static Server newServer(int jettyPort, String jettyWebAppDir) throws Exception {
+    public static Server newServer(int jettyPort, String jettyWebAppDir, JettyServiceSetting jettyServiceSetting) throws Exception {
 
         if (jettyPort == 0 || jettyWebAppDir == null) {
             throw new IllegalArgumentException("Jetty port and resource dir may not be empty");
@@ -49,21 +50,43 @@ public class JettyServer {
         // Setup JMX
         MBeanContainer mbContainer = new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
         server.addBean(mbContainer);
-        // The WebAppContext is the entity that controls the environment in
-        // which a web application lives and breathes. In this example the
-        // context path is being set to "/" so it is suitable for serving root
-        // context requests and then we see it setting the location of the war.
-        // A whole host of other configurations are available, ranging from
-        // configuring to support annotation scanning in the webapp (through
-        // PlusConfiguration) to choosing where the webapp will unpack itself.
-        WebAppContext webapp = new WebAppContext();
-        File warFile = new File(jettyWebAppDir + File.separator + "artifactory.war");
-        webapp.setContextPath("/artifactory");
-        webapp.setWar(warFile.getAbsolutePath());
 
-        // A WebAppContext is a ContextHandler as well so it needs to be set to
-        // the server so it is aware of where to send the appropriate requests.
-        server.setHandler(webapp);
+
+        //setup handlers according to the jetty settings
+        HandlerCollection handlerCollection = new HandlerCollection();
+
+        if (jettyServiceSetting == JettyServiceSetting.ARTIFACTORY || jettyServiceSetting == JettyServiceSetting.BOTH) {
+
+            // The WebAppContext is the entity that controls the environment in
+            // which a web application lives and breathes. In this example the
+            // context path is being set to "/" so it is suitable for serving root
+            // context requests and then we see it setting the location of the war.
+            // A whole host of other configurations are available, ranging from
+            // configuring to support annotation scanning in the webapp (through
+            // PlusConfiguration) to choosing where the webapp will unpack itself.
+            WebAppContext webapp = new WebAppContext();
+            File warFile = new File(jettyWebAppDir + File.separator + "artifactory.war");
+            webapp.setContextPath("/artifactory");
+            webapp.setWar(warFile.getAbsolutePath());
+
+            // A WebAppContext is a ContextHandler as well so it needs to be set to
+            // the server so it is aware of where to send the appropriate requests.
+            handlerCollection.addHandler(webapp);
+
+        }
+
+        if (jettyServiceSetting == JettyServiceSetting.VIP || jettyServiceSetting == JettyServiceSetting.BOTH) {
+
+            // Serve resource files which reside in the jettyWebAppDir
+            ResourceHandler resourceHandler = new ResourceHandler();
+            resourceHandler.setDirectoriesListed(false);
+            resourceHandler.setResourceBase(jettyWebAppDir);
+
+            handlerCollection.addHandler(resourceHandler);
+        }
+
+        server.setHandler(handlerCollection);
+
 
         // http configuration
         HttpConfiguration http_config = new HttpConfiguration();

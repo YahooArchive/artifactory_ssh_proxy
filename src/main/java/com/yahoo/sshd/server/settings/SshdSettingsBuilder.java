@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.sshd.server.command.DefaultScpCommandFactory;
 import com.yahoo.sshd.server.command.DelegatingCommandFactory;
 import com.yahoo.sshd.server.jetty.JettyRunnableComponent;
+import com.yahoo.sshd.server.jetty.JettyServiceSetting;
 import com.yahoo.sshd.server.settings.SshdProxySettings.ShellMode;
 import com.yahoo.sshd.utils.RunnableComponent;
 
@@ -85,6 +86,7 @@ public class SshdSettingsBuilder {
     private int sshdPort;
     private int httpPort;
     private String webappsDir;
+    private JettyServiceSetting jettyServiceSetting;
     private String hostKeyPath;
     private String rootPath;
 
@@ -116,6 +118,7 @@ public class SshdSettingsBuilder {
 
     public SshdSettingsBuilder(@Nonnull String[] args) throws SshdConfigurationException {
         String overriddenPath = null;
+        String jettyServiceSettingArgument = "";
         // create the parser
         final CommandLineParser parser = new GnuParser();
 
@@ -124,12 +127,18 @@ public class SshdSettingsBuilder {
             options.addOption("f", "config", true, "Path to properties file");
             options.addOption("r", "root", true, "root path under which things are stored");
             options.addOption("x", "xdeveloper", false, "Enable developer mode, disabling auth access control");
+            options.addOption("s", "serve", true, "Sets whether the webserver serves Artifactory, VIP or both");
 
             // parse the command line arguments
             CommandLine line = parser.parse(options, args);
             overriddenPath = line.getOptionValue('f');
             overriddenRoot = fixEmpty(line.getOptionValue('r'));
             developerMode = Boolean.valueOf(line.hasOption('x'));
+
+            if (line.hasOption('s')) {
+                jettyServiceSettingArgument = fixEmpty(line.getOptionValue('s'));
+            }
+
         } catch (ParseException e) {
             throw new SshdConfigurationException(e);
         }
@@ -150,6 +159,7 @@ public class SshdSettingsBuilder {
         requestLogPath = findRequestLogPath();
         httpPort = findHttpPort();
         webappsDir = findWebappDir();
+        jettyServiceSetting = findJettyServiceSetting(jettyServiceSettingArgument);
         shellMode = findShellMode();
 
         // do this last, so it can rely on everything before/
@@ -204,7 +214,7 @@ public class SshdSettingsBuilder {
             return new RunnableComponent[] {};
         }
 
-        return new RunnableComponent[] {new JettyRunnableComponent(httpPort, webappsDir),};
+        return new RunnableComponent[] {new JettyRunnableComponent(httpPort, webappsDir, jettyServiceSetting),};
     }
 
     /**
@@ -258,6 +268,30 @@ public class SshdSettingsBuilder {
      */
     protected String findWebappDir() {
         return getStringFromConfig("sshd.jetty.webapp.dir", DEFAULT_JETTY_WEBAPP_DIR, "got jettyWebappDir");
+    }
+
+    /**
+     * Get the service setting from the command line argument for jetty
+     *
+     * @param argument, command line argument
+     * @return the parsed jetty setting, defaults to Artifactory if not argument is empty
+     *  @throws SshdConfigurationException
+     */
+    protected JettyServiceSetting findJettyServiceSetting(String argument) throws SshdConfigurationException{
+
+        JettyServiceSetting jettyServiceSetting;
+
+        if (argument != null && argument.isEmpty()) {
+            jettyServiceSetting = JettyServiceSetting.ARTIFACTORY;
+        } else {
+            try {
+                jettyServiceSetting = JettyServiceSetting.valueOfIgnoreCase(argument);
+            } catch (IllegalArgumentException e) {
+                throw new SshdConfigurationException(e);
+            }
+        }
+
+        return jettyServiceSetting;
     }
 
     /**
