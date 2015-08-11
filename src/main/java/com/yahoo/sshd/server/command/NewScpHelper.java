@@ -13,22 +13,25 @@
 /* Some portions of this code are Copyright (c) 2014, Yahoo! Inc. All rights reserved. */
 package com.yahoo.sshd.server.command;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.annotation.Nonnull;
-
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.common.file.FileSystemView;
 import org.apache.sshd.common.file.SshFile;
 import org.apache.sshd.common.scp.ScpHelper;
 import org.apache.sshd.common.util.DirectoryScanner;
 import org.apache.sshd.server.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.annotation.Nonnull;
 
 import com.yahoo.sshd.server.filesystem.ArtifactorySshFile;
 import com.yahoo.sshd.server.filesystem.NameLengthTuple;
@@ -48,6 +51,7 @@ import com.yahoo.sshd.tools.artifactory.ArtifactoryNoWritePermissionException;
  * 
  */
 public class NewScpHelper extends ScpHelper {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NewScpHelper.class);
     private final LoggingHelper loggingHelper;
     private final Environment env;
     private Map<String, String> envToAfPropertyMapping;
@@ -333,4 +337,63 @@ public class NewScpHelper extends ScpHelper {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public void sendFile(SshFile path, boolean preserve) throws IOException {
+        if (log.isDebugEnabled()) {
+            log.debug("Sending file {}", path);
+        }
+
+        Map<SshFile.Attribute,Object> attrs =  path.getAttributes(true);
+        if (preserve) {
+            StringBuffer buf = new StringBuffer();
+            buf.append("T");
+            buf.append(attrs.get(SshFile.Attribute.LastModifiedTime));
+            buf.append(" ");
+            buf.append("0");
+            buf.append(" ");
+            buf.append(attrs.get(SshFile.Attribute.LastAccessTime));
+            buf.append(" ");
+            buf.append("0");
+            buf.append("\n");
+            out.write(buf.toString().getBytes());
+            out.flush();
+            readAck(false);
+        }
+        /*
+         * See https://support.jfrog.com/support/tickets/28343 for using stream size instead of an attribute.
+         * Also, available() method depends on the http client which could implement the InputStream differently.
+         */
+        InputStream is = path.createInputStream(0);
+        long size = is.available();
+        if (LOGGER.isDebugEnabled()){
+            LOGGER.debug("attribute file size: {} stream size: {} using stream size instead.", attrs.get(SshFile.Attribute.Size), size);
+        }
+        StringBuffer buf = new StringBuffer();
+        buf.append("C");
+        buf.append(preserve ? toOctalPerms((EnumSet<SshFile.Permission>) attrs.get(SshFile.Attribute.Permissions)) : "0644");
+        buf.append(" ");
+        buf.append(size); // length
+        buf.append(" ");
+        buf.append(path.getName());
+        buf.append("\n");
+        out.write(buf.toString().getBytes());
+        out.flush();
+        readAck(false);
+
+        try {
+            byte[] buffer = new byte[8192];
+            for (;;) {
+                int len = is.read(buffer, 0, buffer.length);
+                if (len == -1) {
+                    break;
+                }
+                out.write(buffer, 0, len);
+            }
+        } finally {
+            is.close();
+        }
+        ack();
+        readAck(false);
+    }
 }
