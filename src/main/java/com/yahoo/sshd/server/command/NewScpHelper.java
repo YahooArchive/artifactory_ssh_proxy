@@ -13,6 +13,15 @@
 /* Some portions of this code are Copyright (c) 2014, Yahoo! Inc. All rights reserved. */
 package com.yahoo.sshd.server.command;
 
+import org.apache.sshd.common.SshException;
+import org.apache.sshd.common.file.FileSystemView;
+import org.apache.sshd.common.file.SshFile;
+import org.apache.sshd.common.scp.ScpHelper;
+import org.apache.sshd.common.util.DirectoryScanner;
+import org.apache.sshd.server.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,17 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
-
-import com.yahoo.sshd.server.filesystem.ArtifactoryFileSystemView;
-
-import org.apache.sshd.common.SshException;
-import org.apache.sshd.common.file.FileSystemView;
-import org.apache.sshd.common.file.SshFile;
-import org.apache.sshd.common.scp.ScpHelper;
-import org.apache.sshd.common.util.DirectoryScanner;
-import org.apache.sshd.server.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.server.filesystem.ArtifactorySshFile;
 import com.yahoo.sshd.server.filesystem.NameLengthTuple;
