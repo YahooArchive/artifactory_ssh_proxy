@@ -13,16 +13,20 @@
 
 package com.yahoo.sshd.server.command;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 import org.apache.sshd.common.file.FileSystemView;
 import org.apache.sshd.common.file.SshFile;
+import org.apache.sshd.common.file.SshFile.Attribute;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.yahoo.sshd.server.filesystem.ArtifactorySshFile;
 import com.yahoo.sshd.server.filesystem.NameLengthTuple;
@@ -85,6 +89,24 @@ public class TestNewScpHelper {
                                         .parentFile(sshFileParent).build();
         NameLengthTuple nameLength = Mockito.mock(NameLengthTuple.class);
         Assert.assertNotNull(scpHelper.validateFile(sshFile, nameLength));
+    }
+
+    @Test(groups = "unit", description = "stream size is different from attribute size ")
+    public void testSendFileWithDifferentSize() throws Exception {
+        int expectedSize = 1024;
+        ArtifactorySshFile path = Mockito.mock(ArtifactorySshFile.class); 
+        InputStream in = Mockito.mock(InputStream.class); 
+        Mockito.when(in.available()).thenReturn(expectedSize);
+        Mockito.when(in.read((byte[]) Mockito.any(), Mockito.anyInt(), Mockito.anyInt())).thenReturn(-1);
+        Map<Attribute, Object> map = new HashMap<Attribute, Object>();
+        Mockito.when(path.getAttributes(Mockito.anyBoolean())).thenReturn(map);
+        Mockito.when(path.createInputStream(0)).thenReturn(in);
+        Assert.assertEquals(path.getSize(), 0);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        NewScpHelper scpHelper  = new NewScpHelper(in, out, root, loggingHelper, null, null);
+        scpHelper.sendFile(path, Mockito.anyBoolean());
+        String scpOut = new String(out.toByteArray(),"UTF-8");
+        Assert.assertTrue(scpOut.contains(String.valueOf(expectedSize)));
     }
 
     @DataProvider
