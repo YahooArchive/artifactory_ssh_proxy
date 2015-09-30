@@ -13,7 +13,10 @@
 package com.yahoo.sshd.server.filesystem;
 
 import java.io.IOException;
+import java.io.PipedInputStream;
 import java.text.ParseException;
+import java.util.Map;
+import java.util.concurrent.FutureTask;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -22,10 +25,12 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import com.yahoo.sshd.authorization.ArtifactoryAuthorizer;
+import com.yahoo.sshd.authorization.ArtifactoryPermTargetType;
 import com.yahoo.sshd.tools.artifactory.ArtifactMetaData;
 import com.yahoo.sshd.tools.artifactory.ArtifactMetaDataParseFailureException;
 import com.yahoo.sshd.tools.artifactory.ArtifactNotFoundException;
 import com.yahoo.sshd.tools.artifactory.JFrogArtifactoryClientHelper;
+import com.yahoo.sshd.utils.streams.AsyncHandler;
 
 @Test(groups = "unit")
 public class TestArtifactorySshFile {
@@ -64,6 +69,30 @@ public class TestArtifactorySshFile {
         ArtifactorySshFile sshFile =
                         new ArtifactorySshFile(mockJfach, "upload.txt", "sshd_user", "maven", mockArtifactoryAuthorizer);
         Assert.assertEquals(sshFile.getRepoName(), "maven");
+    }
+
+    @Test
+    public void testHandleClose() throws ArtifactNotFoundException, IOException, ArtifactMetaDataParseFailureException {
+        FutureTask<Void> testTask = new FutureTask<Void>(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        }, null);
+        Mockito.when(mockJfach.putArtifact(Matchers.<PipedInputStream>any(), Matchers.anyString(),
+                                           Matchers.<Map<String, Object>>any(), Matchers.<AsyncHandler>any())).thenReturn(testTask);
+        Mockito.when(mockArtifactoryAuthorizer.authorized(Matchers.anyString(), Matchers.anyString(),
+                                                          Matchers.<ArtifactoryPermTargetType>any())).thenReturn(true);
+
+        ArtifactorySshFile sshFile =
+            new ArtifactorySshFile(mockJfach, "upload.txt", "sshd_user", "maven", mockArtifactoryAuthorizer);
+        sshFile.createOutputStream(0);
+
+        Assert.assertEquals(testTask.isCancelled(), false);
+        sshFile.handleClose();
+        Assert.assertEquals(testTask.isCancelled(), true);
+
+        Mockito.reset(mockJfach, mockArtifactoryAuthorizer);
     }
 
 }

@@ -24,6 +24,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import org.apache.sshd.common.file.SshFile;
 import org.slf4j.Logger;
@@ -73,6 +74,7 @@ public class ArtifactorySshFile implements SshFile {
     protected final JFrogArtifactoryClientHelper jfach;
     protected final String repositoryName;
     protected final ArtifactoryAuthorizer artifactoryAuthorizer;
+    private Future<?> uploaderFuture;
 
     private long size;
 
@@ -414,7 +416,7 @@ public class ArtifactorySshFile implements SshFile {
                 LOGGER.debug("Adding properties: " + properties);;
             }
 
-            jfach.putArtifact(snk, filePath, properties, asyncPipedOutputStream.getAsyncHandler());
+            this.uploaderFuture = jfach.putArtifact(snk, filePath, properties, asyncPipedOutputStream.getAsyncHandler());
         } catch (ArtifactNotFoundException e) {
             // FIXME: This might leak, probably should close these:
             // snk.close();
@@ -477,7 +479,15 @@ public class ArtifactorySshFile implements SshFile {
 
     @Override
     public void handleClose() {
-        // Noop, we don't need to close yet.
+        // We need to interrupt the uploader if the the SshFile is closed.
+        if (null != this.uploaderFuture) {
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("SshFile is closed. Cancel the uploader task if it is still running.");
+            }
+
+            this.uploaderFuture.cancel(true);
+        }
     }
 
     protected ArtifactorySshFile createSshFile(final String childFilename)
