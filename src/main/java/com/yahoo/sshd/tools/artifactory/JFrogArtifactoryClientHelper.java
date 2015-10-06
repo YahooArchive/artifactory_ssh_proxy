@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -191,8 +192,9 @@ public class JFrogArtifactoryClientHelper {
         return in;
     }
 
-    public void putArtifact(PipedInputStream snk, String filePath, Map<String, Object> properties, AsyncHandler handler)
-                    throws ArtifactNotFoundException, IOException {
+    public Future<Void> putArtifact(PipedInputStream snk, String filePath, Map<String, Object> properties,
+                                    AsyncHandler handler)
+        throws ArtifactNotFoundException, IOException {
         try {
             couldThrowIOException();
             final UploadableArtifact upload = repository.upload(filePath, snk);
@@ -204,9 +206,12 @@ public class JFrogArtifactoryClientHelper {
             }
             // We can't block here because we need to call outputstream.close() which happens outside of this method. So
             // are using handler to handle it.
-            CACHED_THREAD_POOL.submit(getUploader(upload, handler));
+            return CACHED_THREAD_POOL.submit(getUploader(upload, handler));
         } catch (IOException ex) {
             handleIOException(ex);
+
+            // This statement is not reachable since the handleIOException will rethrow the exception.
+            return null;
         }
     }
 

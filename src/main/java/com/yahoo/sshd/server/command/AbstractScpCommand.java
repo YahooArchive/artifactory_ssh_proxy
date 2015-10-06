@@ -31,7 +31,6 @@ import org.apache.sshd.server.session.ServerSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.sshd.server.filesystem.ArtifactorySshFile;
 import com.yahoo.sshd.server.logging.LoggingHelper;
 import com.yahoo.sshd.server.logging.SshRequestInfo;
 import com.yahoo.sshd.server.logging.SshRequestLog;
@@ -41,13 +40,13 @@ import com.yahoo.sshd.server.logging.SshRequestStatus;
 /**
  * This commands provide SCP support on both server and client side. Permissions and preservation of access /
  * modification times on files are not supported.
- * 
+ *
  * @author <a href="mailto:dev@mina.apache.org">Apache MINA SSHD Project</a>
  */
 
 /**
  * This was adapted directly from the ScpCommand class in Apache Mina, so leaving license and original comment in place.
- * 
+ *
  * This exists to allow use to replace parts of ScpCommand.
  */
 
@@ -55,6 +54,7 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScpCommand.class);
     protected ServerSession session;
     protected SshRequestLogListener requestLogListener;
+    protected ScpCommandSessionListener scpCommandSessionListener;
     protected Environment env;
     protected Map<String, String> envToAfPropertyMapping;
 
@@ -95,6 +95,7 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
         // ScpHelper helper = new ScpHelper(in, out, root);
         NewScpHelper helper = createScpHelper();
         SshFile sshFile = null;
+        registerScpCommandSessionListener(this.session);
 
         try {
             if (optT) { // upload
@@ -119,6 +120,14 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
             helper.doLogging(e, path);
             LOGGER.info("Error in scp command", e);
         } finally {
+            if (null != sshFile) {
+                try {
+                    sshFile.handleClose();
+                } catch (IOException e) {
+                    LOGGER.error("Error when closing the SshFile: {}", sshFile.getName(), e);
+                }
+            }
+
             if (callback != null) {
                 callback.onExit(exitValue, exitMessage);
             }
@@ -151,8 +160,15 @@ public abstract class AbstractScpCommand extends ScpCommand implements Command, 
         }
     }
 
+    private void registerScpCommandSessionListener(ServerSession session) {
+        if (null != session) {
+            this.scpCommandSessionListener = new ScpCommandSessionListener(Thread.currentThread());
+            this.scpCommandSessionListener.registerSession(session);
+        }
+    }
+
     /**
-     * 
+     *
      * @return an instance of {@link SshRequestLog} that can be used to log all requests.
      */
     protected abstract SshRequestLog getSshRequestLog();
