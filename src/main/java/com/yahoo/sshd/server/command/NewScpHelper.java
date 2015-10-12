@@ -36,6 +36,7 @@ import javax.annotation.Nonnull;
 import com.yahoo.sshd.server.filesystem.ArtifactorySshFile;
 import com.yahoo.sshd.server.filesystem.NameLengthTuple;
 import com.yahoo.sshd.server.logging.LoggingHelper;
+import com.yahoo.sshd.tools.artifactory.ArtifactoryBadRequestException;
 import com.yahoo.sshd.tools.artifactory.ArtifactoryFileNotFoundException;
 import com.yahoo.sshd.tools.artifactory.ArtifactoryNoReadPermissionException;
 import com.yahoo.sshd.tools.artifactory.ArtifactoryNoWritePermissionException;
@@ -172,7 +173,7 @@ public class NewScpHelper extends ScpHelper {
                     sendFile(file, preserve);
                 } else if (file.isDirectory()) {
                     if (!recursive) {
-                        throw new IOException(file + " not a regular file");
+                        throw new ArtifactoryBadRequestException("Not a regular file. Try -r in the scp command.", file);
                     } else {
                         sendDir(file, preserve);
                     }

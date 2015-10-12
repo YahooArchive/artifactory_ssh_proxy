@@ -121,6 +121,9 @@ public class JFrogArtifactoryClientHelper {
             // IOException.
             item = itemHandle.info();
         } catch (IOException e) {
+            // log the exception instead of swallowing it
+            LOGGER.warn("Error when handling the path as a folder. Will try again to handle it as a file. Path: " + path, e);
+
             // oops, it's probably a folder. suffer another rest call.
             itemHandle = repository.file(path);
             try {
@@ -148,6 +151,9 @@ public class JFrogArtifactoryClientHelper {
             // IOException.
             item = itemHandle.info();
         } catch (IOException e) {
+            // log the exception instead of swallowing it
+            LOGGER.warn("Error when handling the path as a file. Will try again to handle it as a folder. Path: " + path, e);
+
             // oops, it's probably a folder. suffer another rest call.
             itemHandle = repository.folder(path);
             try {
