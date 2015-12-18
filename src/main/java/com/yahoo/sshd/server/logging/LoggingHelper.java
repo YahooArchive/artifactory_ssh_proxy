@@ -82,10 +82,16 @@ public class LoggingHelper {
                 LOGGER.debug("generic IOException, errorMessage: " + errorMessage);
             }
 
-            if (null != errorMessage && errorMessage.indexOf("Conflict") >= 0) {
-                statusCode = SshRequestStatus.CONFLICT.getStatusCode();
-            } else {
-                statusCode = SshRequestStatus.INTERNAL_SERVER_ERROR.getStatusCode();
+            statusCode = SshRequestStatus.INTERNAL_SERVER_ERROR.getStatusCode();
+
+            if (null != errorMessage) {
+                if (errorMessage.indexOf("Conflict") >= 0) {
+                    statusCode = SshRequestStatus.CONFLICT.getStatusCode();
+                } else if (errorMessage.indexOf("Method Not Allowed") >= 0) {
+                    statusCode = SshRequestStatus.METHOD_NOT_ALLOWED.getStatusCode();
+                } else if (errorMessage.indexOf("Illegal character in path") >= 0) {
+                    statusCode = SshRequestStatus.BAD_REQUEST.getStatusCode();
+                }
             }
         }
         return statusCode;
