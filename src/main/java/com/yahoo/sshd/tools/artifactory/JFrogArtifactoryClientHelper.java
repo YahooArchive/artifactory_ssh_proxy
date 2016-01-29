@@ -64,37 +64,43 @@ public class JFrogArtifactoryClientHelper {
     }
 
     public ArtifactMetaData getArtifact(String path) throws ParseException, IOException, ArtifactNotFoundException {
-        // we need to get an artifact.
-        // it could be a file, it could be a folder, but their client doesn't
-        // give us the ability to find that as far as I can tell.
-        // so lets play games.
-        Item item;
-        long size = 0;
         // handle checksum files separately as Artifactory doesn't return metadata for checksums.
         if (path.endsWith(".md5") || path.endsWith(".sha1")) {
             return createCheckSumMetaData(path);
         }
 
-        if (path.endsWith("/")) {
-            item = handleFolder(path);
-        } else {
-            item = handleFile(path);
+        try {
+            couldThrowIOException();
+
+            long size = 0;
+            ChildArtifact[] children = null;
+            Date created = null;
+
+            Item item;
+            ItemHandle itemHandle;
+
+            if (repository.isFolder(path)) {
+                itemHandle = repository.folder(path);
+                item = itemHandle.info();
+                Folder folder = (Folder) item;
+                children = ChildArtifact.buildFromItemList(folder.getChildren());
+                created = folder.getCreated();
+            } else {
+                itemHandle = repository.file(path);
+                item = itemHandle.info();
+                created = ((File) item).getCreated();
+                size = ((File) item).getSize();
+            }
+
+            return new ArtifactMetaData(children /* childArtifacts */, created /* created */, item.getLastModified(),
+                    item.getLastUpdated(), item.getModifiedBy(), item.getRepo(), size, item.getUri());
+
+        } catch (IOException e) {
+            handleIOException(e);
         }
 
-        ChildArtifact[] children = null;
-        Date created = null;
-
-        if (item.isFolder() && item instanceof Folder) {
-            Folder folder = (Folder) item;
-            children = ChildArtifact.buildFromItemList(folder.getChildren());
-            created = folder.getCreated();
-        } else if (item instanceof File) {
-            created = ((File) item).getCreated();
-            size = ((File) item).getSize();
-        }
-
-        return new ArtifactMetaData(children /* childArtifacts */, created /* created */, item.getLastModified(),
-                        item.getLastUpdated(), item.getModifiedBy(), item.getRepo(), size, item.getUri());
+        // This does not happen because exceptions are re-thrown in the catch block
+        return null;
     }
 
     private ArtifactMetaData createCheckSumMetaData(String filePath) throws ParseException {
@@ -105,65 +111,6 @@ public class JFrogArtifactoryClientHelper {
             size = 40;
         }
         return new ArtifactMetaData(null, null, null, null, null, null, size, null);
-    }
-
-    private Item handleFolder(String path) throws ArtifactNotFoundException, IOException {
-        ItemHandle itemHandle;
-        Item item = null;
-        try {
-            // we'll default to a folder
-            // this is groovy underneath, so we have to pretend we could
-            // throw an exception
-            couldThrowIOException();
-
-            itemHandle = repository.folder(path);
-            // force download which if it's a folder will throw an
-            // IOException.
-            item = itemHandle.info();
-        } catch (IOException e) {
-            // log the exception instead of swallowing it
-            LOGGER.warn("Error when handling the path as a folder. Will try again to handle it as a file. Path: " + path, e);
-
-            // oops, it's probably a folder. suffer another rest call.
-            itemHandle = repository.file(path);
-            try {
-                couldThrowIOException();
-                item = itemHandle.info();
-            } catch (IOException ex) {
-                handleIOException(ex);
-            }
-        }
-        return item;
-    }
-
-    private Item handleFile(String path) throws ArtifactNotFoundException, IOException {
-        ItemHandle itemHandle;
-        Item item = null;
-        // it could be a folder or a file.
-        // we'll try a file first.
-        try {
-            // this is groovy underneath, so we have to pretend we could
-            // throw an exception
-            couldThrowIOException();
-
-            itemHandle = repository.file(path);
-            // force download which if it's a folder will throw an
-            // IOException.
-            item = itemHandle.info();
-        } catch (IOException e) {
-            // log the exception instead of swallowing it
-            LOGGER.warn("Error when handling the path as a file. Will try again to handle it as a folder. Path: " + path, e);
-
-            // oops, it's probably a folder. suffer another rest call.
-            itemHandle = repository.folder(path);
-            try {
-                couldThrowIOException();
-                item = itemHandle.info();
-            } catch (IOException ex) {
-                handleIOException(ex);
-            }
-        }
-        return item;
     }
 
     private static void handleIOException(final IOException e) throws ArtifactNotFoundException, IOException {
