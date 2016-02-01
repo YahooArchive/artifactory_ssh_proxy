@@ -19,12 +19,12 @@
 
     <groupId>com.yahoo.sshd</groupId>
     <artifactId>sshd_proxy</artifactId>
-    <version>0.2.13-SNAPSHOT</version>
+    <version>0.2.13</version>
     <packaging>jar</packaging>
 
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/yahoo/artifactory_ssh_proxy.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>sshd_proxy-0.2.13</tag>
     </scm>
 
     <name>sshd_proxy</name>
