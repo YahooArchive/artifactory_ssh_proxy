@@ -37,7 +37,7 @@ fi
 
 echo "Publishing to bintray at https://bintray.com/yahoo"
 
-CURRENT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | grep -E '(^\d+\.\d+\.\d+)')
+CURRENT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | grep -E '^[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+')
 echo "Releasing version:  ${CURRENT_VERSION}"
 
 # Some initial setup to get the right files in the right location for us
