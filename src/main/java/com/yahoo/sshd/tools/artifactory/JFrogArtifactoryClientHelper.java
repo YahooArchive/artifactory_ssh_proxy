@@ -12,6 +12,16 @@
  */
 package com.yahoo.sshd.tools.artifactory;
 
+import org.jfrog.artifactory.client.Artifactory;
+import org.jfrog.artifactory.client.ItemHandle;
+import org.jfrog.artifactory.client.RepositoryHandle;
+import org.jfrog.artifactory.client.UploadableArtifact;
+import org.jfrog.artifactory.client.model.File;
+import org.jfrog.artifactory.client.model.Folder;
+import org.jfrog.artifactory.client.model.Item;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
@@ -25,16 +35,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import org.jfrog.artifactory.client.Artifactory;
-import org.jfrog.artifactory.client.ItemHandle;
-import org.jfrog.artifactory.client.RepositoryHandle;
-import org.jfrog.artifactory.client.UploadableArtifact;
-import org.jfrog.artifactory.client.model.File;
-import org.jfrog.artifactory.client.model.Folder;
-import org.jfrog.artifactory.client.model.Item;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.yahoo.sshd.utils.ThreadUtils;
 import com.yahoo.sshd.utils.streams.AsyncHandler;
@@ -50,7 +50,8 @@ public class JFrogArtifactoryClientHelper {
     protected final Artifactory afClient;
     protected final String repositoryName;
     protected final RepositoryHandle repository;
-
+    protected final static int retryCount=5;
+    
     // FIXME: need to inject NingRequestImpl
     public JFrogArtifactoryClientHelper(final ArtifactoryInformation afInfo, final String repositoryName) {
         this.repositoryName = repositoryName;
@@ -58,6 +59,10 @@ public class JFrogArtifactoryClientHelper {
         this.repository = afClient.repository(this.repositoryName);
     }
 
+    protected static int getRetryCount(){
+        return retryCount;
+    }
+    
     protected Artifactory createAfClient(final ArtifactoryInformation afInfo) {
         return org.jfrog.artifactory.client.ning.ArtifactoryClient.create(afInfo.getArtifactoryUrl(),
                         afInfo.getArtifactoryUsername(), afInfo.getArtifactoryPassword(), afInfo.createNingRequest());
@@ -69,34 +74,36 @@ public class JFrogArtifactoryClientHelper {
             return createCheckSumMetaData(path);
         }
 
-        try {
-            couldThrowIOException();
+        for (int i = 1; i < retryCount + 1; i++){
+            try {
+                couldThrowIOException();
 
-            long size = 0;
-            ChildArtifact[] children = null;
-            Date created = null;
+                long size = 0;
+                ChildArtifact[] children = null;
+                Date created = null;
 
-            Item item;
-            ItemHandle itemHandle;
+                Item item;
+                ItemHandle itemHandle;
 
-            if (repository.isFolder(path)) {
-                itemHandle = repository.folder(path);
-                item = itemHandle.info();
-                Folder folder = (Folder) item;
-                children = ChildArtifact.buildFromItemList(folder.getChildren());
-                created = folder.getCreated();
-            } else {
-                itemHandle = repository.file(path);
-                item = itemHandle.info();
-                created = ((File) item).getCreated();
-                size = ((File) item).getSize();
+                if (repository.isFolder(path)) {
+                    itemHandle = repository.folder(path);
+                    item = itemHandle.info();
+                    Folder folder = (Folder) item;
+                    children = ChildArtifact.buildFromItemList(folder.getChildren());
+                    created = folder.getCreated();
+                } else {
+                    itemHandle = repository.file(path);
+                    item = itemHandle.info();
+                    created = ((File) item).getCreated();
+                    size = ((File) item).getSize();
+                }
+
+                return new ArtifactMetaData(children /* childArtifacts */, created /* created */, item.getLastModified(),
+                        item.getLastUpdated(), item.getModifiedBy(), item.getRepo(), size, item.getUri());
+
+            } catch (IOException e) {
+                handleIOException(e, i);
             }
-
-            return new ArtifactMetaData(children /* childArtifacts */, created /* created */, item.getLastModified(),
-                    item.getLastUpdated(), item.getModifiedBy(), item.getRepo(), size, item.getUri());
-
-        } catch (IOException e) {
-            handleIOException(e);
         }
 
         // This does not happen because exceptions are re-thrown in the catch block
@@ -113,7 +120,7 @@ public class JFrogArtifactoryClientHelper {
         return new ArtifactMetaData(null, null, null, null, null, null, size, null);
     }
 
-    private static void handleIOException(final IOException e) throws ArtifactNotFoundException, IOException {
+    private static void handleIOException(final IOException e, final int currentRetry) throws ArtifactNotFoundException, IOException {
         if (e instanceof org.apache.http.client.HttpResponseException) {
             int statusCode = ((org.apache.http.client.HttpResponseException) e).getStatusCode();
             if (statusCode == 404) {
@@ -121,10 +128,18 @@ public class JFrogArtifactoryClientHelper {
             } else {
                 // Throw back the error for other status codes. We shouldn't be
                 // here if we have 2xx so thats fine.
-                throw e;
+                warnRetryMessage(e, currentRetry);
             }
         } else {
+            warnRetryMessage(e, currentRetry);
+        }
+    }
+    
+    private static final void warnRetryMessage(final IOException e, final int currentRetry) throws IOException{
+        if (currentRetry == retryCount){
             throw e;
+        }else{
+            LOGGER.warn(e + " retrying " + currentRetry + "/" +  retryCount );
         }
     }
 
@@ -135,14 +150,15 @@ public class JFrogArtifactoryClientHelper {
     }
 
     public InputStream getArtifactContents(String filePath) throws ArtifactNotFoundException, IOException {
-        InputStream in = null;
-        try {
-            couldThrowIOException();
-            in = repository.download(filePath).doDownload();
-        } catch (IOException ex) {
-            handleIOException(ex);
+        for (int i = 1; i < retryCount + 1; i++){
+            try {
+                couldThrowIOException();
+                return repository.download(filePath).doDownload();
+            } catch (IOException ex) {
+                handleIOException(ex, i);
+            }
         }
-        return in;
+        return null;
     }
 
     public Future<Void> putArtifact(PipedInputStream snk, String filePath, Map<String, Object> properties,
@@ -161,7 +177,7 @@ public class JFrogArtifactoryClientHelper {
             // are using handler to handle it.
             return CACHED_THREAD_POOL.submit(getUploader(upload, handler));
         } catch (IOException ex) {
-            handleIOException(ex);
+            handleIOException(ex, retryCount);
 
             // This statement is not reachable since the handleIOException will rethrow the exception.
             return null;
