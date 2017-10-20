@@ -70,7 +70,7 @@ public class JFrogArtifactoryClientHelper {
 
     public ArtifactMetaData getArtifact(String path) throws ParseException, IOException, ArtifactNotFoundException {
         // handle checksum files separately as Artifactory doesn't return metadata for checksums.
-        if (path.endsWith(".md5") || path.endsWith(".sha1")) {
+        if (path.endsWith(".md5") || path.endsWith(".sha1") || path.endsWith(".sha256")) {
             return createCheckSumMetaData(path);
         }
 
@@ -116,6 +116,8 @@ public class JFrogArtifactoryClientHelper {
             size = 32;
         } else if (filePath.endsWith(".sha1")) {
             size = 40;
+        } else if (filePath.endsWith(".sha256")) {
+            size = 64;
         }
         return new ArtifactMetaData(null, null, null, null, null, null, size, null);
     }
