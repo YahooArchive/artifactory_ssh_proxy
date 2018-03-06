@@ -95,9 +95,9 @@ public class SshdProxySettings implements SshdSettingsInterface {
     protected final int httpPort;
 
     /**
-     * The path to the host key the server uses
+     * The paths to the host key the server uses
      */
-    protected final String hostKeyPath;
+    protected final List<String> hostKeyPaths;
 
     /**
      * An odd hackery to allow the CommandFactories to be changed while doing development TODO: remove/refactor out.
@@ -134,7 +134,7 @@ public class SshdProxySettings implements SshdSettingsInterface {
 
         this.port = b.getSshdPort();
         this.httpPort = b.getHttpPort();
-        this.hostKeyPath = b.getHostKeyPath();
+        this.hostKeyPaths = b.getHostKeyPaths();
         this.cfInstances = Collections.unmodifiableList(b.getCommandFactories());
 
         String artifactoryUrl = b.getArtifactoryUrl();
@@ -207,11 +207,11 @@ public class SshdProxySettings implements SshdSettingsInterface {
     /*
      * (non-Javadoc)
      * 
-     * @see com.yahoo.sshd.server.SshdSettingsInterface#getHostKeyPath()
+     * @see com.yahoo.sshd.server.SshdSettingsInterface#getHostKeyPaths()
      */
     @Override
-    public String getHostKeyPath() {
-        return hostKeyPath;
+    public List<String> getHostKeyPaths() {
+        return hostKeyPaths;
     }
 
     /*

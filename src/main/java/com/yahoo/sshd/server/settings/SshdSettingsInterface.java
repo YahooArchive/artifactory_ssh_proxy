@@ -35,7 +35,7 @@ public interface SshdSettingsInterface {
      */
     int getPort();
 
-    String getHostKeyPath();
+    List<String> getHostKeyPaths();
 
     DelegatingCommandFactory getCommandFactory();
 

@@ -51,7 +51,7 @@ public class TestOptions {
         SshdSettingsInterface settings = builder.build();
 
         Assert.assertEquals(settings.getPort(), 2222);
-        Assert.assertEquals(settings.getHostKeyPath(), "src/test/resources/conf/sshd_proxy/ssh_host_dsa_key");
+        Assert.assertTrue(settings.getHostKeyPaths().contains("src/test/resources/conf/sshd_proxy/ssh_host_dsa_key"));
 
         // disabled by default
         Assert.assertEquals(settings.getHttpPort(), SshdSettingsBuilder.DEFAULT_JETTY_PORT);
@@ -91,7 +91,7 @@ public class TestOptions {
         SshdSettingsInterface settings = builder.build();
 
         Assert.assertEquals(settings.getPort(), 2222);
-        Assert.assertEquals(settings.getHostKeyPath(), "src/test/resources/conf/sshd_proxy/ssh_host_dsa_key");
+        Assert.assertTrue(settings.getHostKeyPaths().contains("src/test/resources/conf/sshd_proxy/ssh_host_dsa_key"));
 
         // disabled by default
         Assert.assertEquals(settings.getHttpPort(), SshdSettingsBuilder.DEFAULT_JETTY_PORT);
@@ -106,6 +106,16 @@ public class TestOptions {
         }
 
         Assert.assertEquals(list, SshdSettingsBuilder.DEFAULT_COMMAND_FACTORIES);
+    }
+
+    @Test
+    public void testMultipleHostKeys() throws Exception {
+        String[] args = new String[] {"-f", "src/test/resources/conf/sshd_proxy/sshd_proxy_hostkeys.properties"};
+        SshdSettingsBuilder builder = new SshdSettingsBuilder(args);
+        SshdSettingsInterface settings = builder.build();
+
+        Assert.assertTrue(settings.getHostKeyPaths().contains("src/test/resources/keys/test_ssh_key-0"));
+        Assert.assertTrue(settings.getHostKeyPaths().contains("src/test/resources/keys/test_ssh_key-10"));
     }
 
     @DataProvider

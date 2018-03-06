@@ -72,7 +72,7 @@ public class SshServerWrapper implements Runnable, Closeable {
                         .artifactoryAuthorizerProvider(this.settings));
         this.keyPairProvider =
                         injector.getInstance(PEMHostKeyProviderFactory.class).createPEMHostKeyProvider(
-                                        this.settings.getHostKeyPath());
+                                        this.settings.getHostKeyPaths());
         this.requestLog =
                         injector.getInstance(RequestLogFactory.class).createRequestLog(
                                         this.settings.getRequestLogPath());

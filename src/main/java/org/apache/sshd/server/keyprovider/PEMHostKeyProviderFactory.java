@@ -13,9 +13,11 @@
 /* Some portions of this code are Copyright (c) 2014, Yahoo! Inc. All rights reserved. */
 package org.apache.sshd.server.keyprovider;
 
+import java.util.List;
+
 import org.apache.sshd.common.KeyPairProvider;
 
 public interface PEMHostKeyProviderFactory {
 
-    KeyPairProvider createPEMHostKeyProvider(String path);
+    KeyPairProvider createPEMHostKeyProvider(List<String> paths);
 }

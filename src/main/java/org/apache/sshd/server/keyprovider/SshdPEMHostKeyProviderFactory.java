@@ -13,13 +13,15 @@
 /* Some portions of this code are Copyright (c) 2014, Yahoo! Inc. All rights reserved. */
 package org.apache.sshd.server.keyprovider;
 
+import java.util.List;
+
 import org.apache.sshd.common.KeyPairProvider;
 
 public class SshdPEMHostKeyProviderFactory implements PEMHostKeyProviderFactory {
 
     @Override
-    public KeyPairProvider createPEMHostKeyProvider(String path) {
-        return new PEMHostKeyProvider(path);
+    public KeyPairProvider createPEMHostKeyProvider(List<String> paths) {
+        return new PEMHostKeyProvider(paths);
     }
 
 }
