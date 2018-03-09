@@ -20,6 +20,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.security.KeyPair;
+import java.util.AbstractList;
 import java.util.ArrayList;
 
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider;
@@ -36,22 +37,29 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 public class PEMHostKeyProvider extends AbstractKeyPairProvider {
 
     private String path;
-    protected KeyPair keyPair;
+    protected AbstractList<KeyPair> keyPairs;
     private final JcaPEMKeyConverter jcaHelper = new JcaPEMKeyConverter();
 
     public PEMHostKeyProvider(String path) {
         this.path = path;
         loadKeys();
         // load a host key, and ensure we don't create it.
-        if (this.keyPair == null) {
+        if (this.keyPairs.isEmpty()) {
             throw new RuntimeException("Unable to load hostkeys from " + path);
         }
     }
 
-    protected KeyPair doReadKeyPair(InputStream is) throws Exception {
+    protected AbstractList<KeyPair> doReadKeyPairs(InputStream is) throws Exception {
+        AbstractList<KeyPair> keys = new ArrayList<KeyPair>();
         try (PEMParser r = new PEMParser(new InputStreamReader(is))) {
-            return jcaHelper.getKeyPair((PEMKeyPair) r.readObject());
+            Object key = null;
+            while ((key = r.readObject()) != null) {
+                if (key instanceof PEMKeyPair) {
+                    keys.add(jcaHelper.getKeyPair((PEMKeyPair) key));
+                }
+            }
         }
+        return keys;
     }
 
     protected void doWriteKeyPair(KeyPair kp, OutputStream os) throws Exception {
@@ -61,9 +69,9 @@ public class PEMHostKeyProvider extends AbstractKeyPairProvider {
         }
     }
 
-    private KeyPair readKeyPair(File f) {
+    private AbstractList<KeyPair> readKeyPairs(File f) {
         try (InputStream is = new FileInputStream(f)) {
-            return doReadKeyPair(is);
+            return doReadKeyPairs(is);
         } catch (Exception e) {
             //log.info("Unable to read key {}: {}", path, e);
             throw new RuntimeException(e);
@@ -73,19 +81,14 @@ public class PEMHostKeyProvider extends AbstractKeyPairProvider {
 
     @Override
     public synchronized Iterable<KeyPair> loadKeys() {
-        ArrayList<KeyPair> keyPairList = new ArrayList<KeyPair>();
-
-        if (keyPair == null) {
+        if (keyPairs == null) {
             File f = new File(path);
             if (f.exists() && f.isFile()) {
-                keyPair = readKeyPair(f);
+                keyPairs = readKeyPairs(f);
             }
         }
-        if (null != keyPair) {
-            keyPairList.add(keyPair);
-        }
 
-        return keyPairList;
+        return keyPairs;
     }
 
 }
