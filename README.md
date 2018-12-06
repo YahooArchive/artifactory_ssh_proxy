@@ -1,5 +1,7 @@
 # Artifactory sshd_proxy
 
+**Please Note**: This project is no longer maintained and contains known security vulnerabilities. Use at your own risk!
+
 [![Build Status](https://travis-ci.org/yahoo/artifactory_ssh_proxy.svg)](https://travis-ci.org/yahoo/artifactory_ssh_proxy) [![Dependency Status](https://www.versioneye.com/user/projects/555b952c634daa30fb000308/badge.svg?style=flat)](https://www.versioneye.com/user/projects/555b952c634daa30fb000308) [![Coverage Status](https://coveralls.io/repos/yahoo/artifactory_ssh_proxy/badge.svg)](https://coveralls.io/r/yahoo/artifactory_ssh_proxy) [![Download](https://api.bintray.com/packages/yahoo/maven/artifactory_ssh_proxy/images/download.svg)](https://bintray.com/yahoo/maven/artifactory_ssh_proxy/_latestVersion)
 
 
