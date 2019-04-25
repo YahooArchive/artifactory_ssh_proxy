@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.security.KeyPair;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
@@ -35,16 +36,16 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
  */
 public class PEMHostKeyProvider extends AbstractKeyPairProvider {
 
-    private String path;
-    protected KeyPair keyPair;
+    private List<String> paths;
+    protected List<KeyPair> keyPairs;
     private final JcaPEMKeyConverter jcaHelper = new JcaPEMKeyConverter();
 
-    public PEMHostKeyProvider(String path) {
-        this.path = path;
+    public PEMHostKeyProvider(List<String> paths) {
+        this.paths = paths;
         loadKeys();
         // load a host key, and ensure we don't create it.
-        if (this.keyPair == null) {
-            throw new RuntimeException("Unable to load hostkeys from " + path);
+        if (this.keyPairs.isEmpty()) {
+            throw new RuntimeException("Unable to load hostkeys from " + paths);
         }
     }
 
@@ -65,7 +66,7 @@ public class PEMHostKeyProvider extends AbstractKeyPairProvider {
         try (InputStream is = new FileInputStream(f)) {
             return doReadKeyPair(is);
         } catch (Exception e) {
-            //log.info("Unable to read key {}: {}", path, e);
+            //log.info("Unable to read key {}: {}", paths, e);
             throw new RuntimeException(e);
         }
         //return null;
@@ -75,14 +76,14 @@ public class PEMHostKeyProvider extends AbstractKeyPairProvider {
     public synchronized Iterable<KeyPair> loadKeys() {
         ArrayList<KeyPair> keyPairList = new ArrayList<KeyPair>();
 
-        if (keyPair == null) {
+        for (String path : this.paths) {
             File f = new File(path);
             if (f.exists() && f.isFile()) {
-                keyPair = readKeyPair(f);
+                keyPairList.add(readKeyPair(f));
             }
         }
-        if (null != keyPair) {
-            keyPairList.add(keyPair);
+        if (this.keyPairs == null) {
+            this.keyPairs = keyPairList;
         }
 
         return keyPairList;

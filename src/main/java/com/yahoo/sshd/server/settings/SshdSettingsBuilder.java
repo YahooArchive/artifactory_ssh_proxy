@@ -87,7 +87,7 @@ public class SshdSettingsBuilder {
     private int httpPort;
     private String webappsDir;
     private JettyServiceSetting jettyServiceSetting;
-    private String hostKeyPath;
+    private List<String> hostKeyPaths;
     private String rootPath;
 
     private List<? extends DelegatingCommandFactory> commandFactories;
@@ -150,7 +150,7 @@ public class SshdSettingsBuilder {
         }
 
         rootPath = findRoot(overriddenRoot);
-        hostKeyPath = findHostKeyPath();
+        hostKeyPaths = findHostKeyPaths();
         sshdPort = findSshdPort();
         artifactoryUrl = findArtifactoryUrl();
         artifactoryUsername = findArtifactoryUsername();
@@ -297,13 +297,13 @@ public class SshdSettingsBuilder {
     /**
      * Locate the hostkey path from the configuration
      * 
-     * @return the hostKeyPath that should be set in the build for consumption by the {@link SshdSettingsInterface}
+     * @return the hostKeyPaths that should be set in the build for consumption by the {@link SshdSettingsInterface}
      *         implementation
      */
-    protected String findHostKeyPath() {
-        final String defaultHostKeyPath = getConfDir() + "ssh_host_dsa_key";
+    protected List<String> findHostKeyPaths() {
+        List<String> defaultHostKeyPaths = Arrays.asList(getConfDir() + "ssh_host_dsa_key");
 
-        return getStringFromConfig("sshd.hostKeyPath", defaultHostKeyPath, "got host key");
+        return getStringListFromConfig("sshd.hostKeyPath", defaultHostKeyPaths, "got host key");
     }
 
     List<DelegatingCommandFactory> createCfInstances() {
@@ -514,15 +514,15 @@ public class SshdSettingsBuilder {
         return this;
     }
 
-    protected String getHostKeyPath() {
-        if (null == hostKeyPath) {
-            hostKeyPath = findHostKeyPath();
+    protected List<String> getHostKeyPaths() {
+        if (null == hostKeyPaths) {
+            hostKeyPaths = findHostKeyPaths();
         }
-        return hostKeyPath;
+        return hostKeyPaths;
     }
 
-    protected SshdSettingsBuilder setHostKeyPath(String hostKeyPath) {
-        this.hostKeyPath = hostKeyPath;
+    protected SshdSettingsBuilder setHostKeyPath(List<String> hostKeyPaths) {
+        this.hostKeyPaths = hostKeyPaths;
         return this;
     }
 
@@ -667,6 +667,19 @@ public class SshdSettingsBuilder {
             return s.trim();
         }
         return s;
+    }
+
+    public List<String> getStringListFromConfig(String config, List<String> defaultValue, String message) {
+        final List<Object> list = configuration.getList("sshd.hostKeyPath", defaultValue);
+
+        List<String> ret = new ArrayList<String>();
+        for (Object o : list) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("{} {}", message, o);
+            }
+            ret.add(o.toString().trim());
+        }
+        return ret;
     }
 
 

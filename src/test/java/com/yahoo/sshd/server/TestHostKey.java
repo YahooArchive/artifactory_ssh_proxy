@@ -13,6 +13,7 @@
 package com.yahoo.sshd.server;
 
 import java.security.KeyPair;
+import java.util.Arrays;
 
 import org.apache.sshd.server.keyprovider.PEMHostKeyProvider;
 import org.testng.Assert;
@@ -23,7 +24,7 @@ public class TestHostKey {
     @Test
     public void testHostKey() {
         System.err.println("os.name=" + System.getProperty("os.name"));
-        PEMHostKeyProvider keyPairProvider = new PEMHostKeyProvider("src/test/resources/hostkey.pem");
+        PEMHostKeyProvider keyPairProvider = new PEMHostKeyProvider(Arrays.asList("src/test/resources/hostkey.pem"));
         Iterable<KeyPair> keys = keyPairProvider.loadKeys();
         Assert.assertNotNull(keys);
         // TODO: fix
